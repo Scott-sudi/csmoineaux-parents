@@ -8,57 +8,24 @@ Elle consomme uniquement l’API REST Django déjà déployée — aucune base d
 
 | Élément | Valeur |
 |--------|--------|
-| Domaine production | `https://institut-kalunga.net` |
+| Hôte actuel (o2switch) | `http://institut-kalunga.net.susc3383.odns.fr` |
 | Préfixe API | `/api/v1` |
-| Config centralisée | `lib/config/api_config.dart` |
+| Config | `lib/config/api_config.dart` |
 
-Ne jamais mettre d’URL dans les écrans. Pour basculer vers l’URL temporaire o2switch (DNS non propagé), modifier `ApiConfig.environment`.
+## APK Android
 
-## Architecture
+À chaque push sur `main`, GitHub Actions construit une APK release :
 
-```
-lib/
-  config/          # ApiConfig
-  constants/       # Endpoints, constantes UI
-  core/            # Dio, exceptions, thème, secure storage
-  models/
-  services/        # Auth, Login, User, Home
-  repositories/
-  providers/       # Riverpod
-  screens/
-  widgets/
-  utils/
-  main.dart
-```
+1. Onglet **Actions** → workflow **Build Android APK**
+2. Ou **Releases** → télécharger `app-release.apk`
+3. Sur le téléphone : autoriser l’installation depuis des sources inconnues, puis ouvrir l’APK
 
-## Première étape livrée
-
-- Page **Accueil** fidèle à la maquette (vue d’ensemble + activités + bottom nav 5 onglets)
-- **Connexion téléphone** au démarrage (`AuthGate` → `LoginPhoneScreen`)
-- API Django `POST /api/v1/parents/auth/verify-phone/` (responsable / Guardian)
-- Architecture auth extensible (`AuthChallenge` : phone → password / PIN / OTP / biométrie)
-- Couche réseau Dio + enveloppe JSON Kalunga
-- Auth JWT + `flutter_secure_storage` (JWT pour plus tard ; session téléphone active)
-- Données Accueil en **mock** (`HomeService.useMockData = true`), prêtes à être remplacées par l’API
-
-## Lancer le projet
-
-Un SDK Flutter local est disponible sous `IK/tools/flutter` (non versionné).
-
-Dans PowerShell / CMD :
+## Lancer en local (web)
 
 ```bat
-cd kalunga-school\mobile\kalunga_parents
+cd mobile\kalunga_parents
 ..\..\..\tools\flutter\bin\flutter.bat pub get
-..\..\..\tools\flutter\bin\flutter.bat run -d chrome
+..\..\..\tools\flutter\bin\flutter.bat run -d edge --web-port=7357
 ```
 
-Ou avec un Flutter déjà dans le PATH :
-
-```bash
-cd mobile/kalunga_parents
-flutter pub get
-flutter run
-```
-
-> L’installation Puro (`~/.puro/envs/stable`) était corrompue sur cette machine ; le SDK sous `tools/flutter` sert de contournement.
+Proxy CORS web : `python tool/dev_cors_proxy.py` (port 8788).
