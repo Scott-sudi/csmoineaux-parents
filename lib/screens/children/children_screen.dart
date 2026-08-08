@@ -1,0 +1,179 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../constants/app_constants.dart';
+import '../../core/theme/app_colors.dart';
+import '../../models/child_models.dart';
+import '../../providers/children_providers.dart';
+import '../../widgets/children/child_card.dart';
+import '../../widgets/children/children_empty_state.dart';
+import 'child_attendance_screen.dart';
+import 'child_detail_screen.dart';
+import 'child_discipline_screen.dart';
+import 'child_finance_screen.dart';
+
+/// Écran « Mes Enfants » — maquette (sans Devoirs ; Voir conservé).
+class ChildrenScreen extends ConsumerWidget {
+  const ChildrenScreen({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final asyncChildren = ref.watch(childrenListProvider);
+
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      appBar: AppBar(
+        backgroundColor: AppColors.primary,
+        foregroundColor: Colors.white,
+        elevation: 0,
+        centerTitle: true,
+        title: const Text(
+          'Mes Enfants',
+          style: TextStyle(fontWeight: FontWeight.w700),
+        ),
+        actions: [
+          IconButton(
+            tooltip: 'Ajouter un enfant',
+            onPressed: () => _showComingSoon(context),
+            icon: const Icon(Icons.add_circle_outline),
+          ),
+        ],
+      ),
+      body: asyncChildren.when(
+        loading: () => const Center(
+          child: CircularProgressIndicator(color: AppColors.primary),
+        ),
+        error: (error, _) => _ErrorState(
+          message: error.toString(),
+          onRetry: () => ref.invalidate(childrenListProvider),
+        ),
+        data: (children) {
+          if (children.isEmpty) {
+            return RefreshIndicator(
+              color: AppColors.primary,
+              onRefresh: () async {
+                ref.invalidate(childrenListProvider);
+                await ref.read(childrenListProvider.future);
+              },
+              child: ListView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                children: [
+                  SizedBox(
+                    height: MediaQuery.sizeOf(context).height * 0.55,
+                    child: ChildrenEmptyState(
+                      onAddChild: () => _showComingSoon(context),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }
+
+          return RefreshIndicator(
+            color: AppColors.primary,
+            onRefresh: () async {
+              ref.invalidate(childrenListProvider);
+              await ref.read(childrenListProvider.future);
+            },
+            child: ListView.separated(
+              padding: const EdgeInsets.fromLTRB(
+                AppConstants.pagePadding,
+                16,
+                AppConstants.pagePadding,
+                24,
+              ),
+              itemCount: children.length,
+              separatorBuilder: (_, __) => const SizedBox(height: 12),
+              itemBuilder: (context, index) {
+                final child = children[index];
+                return ChildCard(
+                  child: child,
+                  onOpenProfile: () => _openDetail(context, child),
+                  onAction: (action) => _openAction(context, child, action),
+                );
+              },
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  void _openDetail(BuildContext context, ChildSummary child) {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => ChildDetailScreen(child: child),
+      ),
+    );
+  }
+
+  void _openAction(
+    BuildContext context,
+    ChildSummary child,
+    ChildQuickAction action,
+  ) {
+    final Widget screen = switch (action) {
+      ChildQuickAction.presence => ChildAttendanceScreen(
+          child: child,
+          kind: 'present',
+        ),
+      ChildQuickAction.absences => ChildAttendanceScreen(
+          child: child,
+          kind: 'absent',
+        ),
+      ChildQuickAction.discipline => ChildDisciplineScreen(child: child),
+      ChildQuickAction.payments => ChildFinanceScreen(child: child),
+    };
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(builder: (_) => screen),
+    );
+  }
+
+  void _showComingSoon(BuildContext context) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Ajout d’un enfant — à venir.'),
+      ),
+    );
+  }
+}
+
+class _ErrorState extends StatelessWidget {
+  const _ErrorState({
+    required this.message,
+    required this.onRetry,
+  });
+
+  final String message;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(
+              Icons.wifi_off_outlined,
+              size: 48,
+              color: AppColors.primary,
+            ),
+            const SizedBox(height: 12),
+            Text(
+              message,
+              textAlign: TextAlign.center,
+              style: const TextStyle(color: AppColors.textSecondary),
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: onRetry,
+              child: const Text('Réessayer'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
