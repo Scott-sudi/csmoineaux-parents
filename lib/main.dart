@@ -7,6 +7,7 @@ import 'core/theme/app_theme.dart';
 import 'providers/dependency_providers.dart';
 import 'providers/settings_providers.dart';
 import 'screens/auth/auth_gate.dart';
+import 'widgets/startup_permissions_gate.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -49,7 +50,9 @@ class KalungaParentsApp extends ConsumerWidget {
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
-      home: const AuthGate(),
+      home: const StartupPermissionsGate(
+        child: AuthGate(),
+      ),
     );
   }
 }
