@@ -8,6 +8,7 @@ import '../../providers/auth_providers.dart';
 import '../../providers/home_providers.dart';
 import '../../providers/profile_photo_provider.dart';
 import '../../providers/settings_providers.dart';
+import '../../services/push_notification_service.dart';
 import '../about/about_screen.dart';
 import 'help_support_screen.dart';
 import 'personal_info_screen.dart';
@@ -160,6 +161,35 @@ class AccountScreen extends ConsumerWidget {
                     color: cardBg,
                     divider: divider,
                     children: [
+                      _SettingsRow(
+                        icon: Icons.notifications_active_outlined,
+                        label: 'Tester l’alerte (son)',
+                        textPrimary: textPrimary,
+                        textSecondary: textSecondary,
+                        onTap: () async {
+                          ref.read(inAppAlertProvider.notifier).state =
+                              const InAppAlert(
+                            title: 'Test Institut Kalunga',
+                            body: 'Si vous entendez ceci, le son fonctionne.',
+                          );
+                          await ref
+                              .read(pushNotificationServiceProvider)
+                              .showLocalAlert(
+                                title: 'Test Institut Kalunga',
+                                body:
+                                    'Si vous entendez ceci, le son fonctionne.',
+                              );
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text(
+                                  'Alerte de test envoyée — écoutez le son.',
+                                ),
+                              ),
+                            );
+                          }
+                        },
+                      ),
                       _SettingsRow(
                         icon: Icons.info_outline,
                         label: s.aboutTitle,

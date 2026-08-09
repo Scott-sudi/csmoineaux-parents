@@ -4,7 +4,9 @@ import 'package:audioplayers/audioplayers.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:flutter_ringtone_player/flutter_ringtone_player.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../constants/api_endpoints.dart';
@@ -14,22 +16,18 @@ import '../providers/dependency_providers.dart';
 import '../providers/home_providers.dart';
 import '../providers/notifications_providers.dart';
 
-/// Nouveau canal à chaque changement de son / importance
-/// (Android verrouille le canal après la 1re création).
-const kParentsAlertChannelId = 'kalunga_parents_alerts_v3';
+/// Canal Android v4 — son système + alarme (Android verrouille les canaux).
+const kParentsAlertChannelId = 'kalunga_parents_alerts_v4';
 const kParentsAlertChannelName = 'Alertes Institut Kalunga';
 
-/// Contenu pour la bannière en haut d’écran (style WhatsApp).
 class InAppAlert {
   const InAppAlert({required this.title, required this.body});
   final String title;
   final String body;
 }
 
-/// Bannière flottante affichée dans l’app (en plus de la notif système).
 final inAppAlertProvider = StateProvider<InAppAlert?>((ref) => null);
 
-/// Handler push reçu app en arrière-plan / tuée (isolate dédié).
 @pragma('vm:entry-point')
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   try {
@@ -37,7 +35,7 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   } catch (_) {}
 }
 
-/// Notifications locales (son + bannière) + push FCM.
+/// Notifications locales (son système + bannière) + push FCM.
 class PushNotificationService {
   PushNotificationService({required ApiService api}) : _api = api;
 
@@ -45,15 +43,17 @@ class PushNotificationService {
   final FlutterLocalNotificationsPlugin _local =
       FlutterLocalNotificationsPlugin();
   final AudioPlayer _player = AudioPlayer();
+  final FlutterRingtonePlayer _ringtone = FlutterRingtonePlayer();
 
   bool _ready = false;
   bool _fcmReady = false;
+  bool _audioConfigured = false;
 
   Future<void> init() async {
     if (_ready || kIsWeb) return;
 
-    // Icône barre de statut : silhouette blanche (requis Android).
-    const androidInit = AndroidInitializationSettings('@drawable/ic_stat_notify');
+    const androidInit =
+        AndroidInitializationSettings('@drawable/ic_stat_notify');
     const iosInit = DarwinInitializationSettings(
       requestAlertPermission: true,
       requestSoundPermission: true,
@@ -63,7 +63,7 @@ class PushNotificationService {
       settings: const InitializationSettings(android: androidInit, iOS: iosInit),
     );
 
-    final vibration = Int64List.fromList([0, 400, 200, 400]);
+    final vibration = Int64List.fromList([0, 500, 200, 500, 200, 500]);
 
     final androidPlugin = _local.resolvePlatformSpecificImplementation<
         AndroidFlutterLocalNotificationsPlugin>();
@@ -71,7 +71,7 @@ class PushNotificationService {
       AndroidNotificationChannel(
         kParentsAlertChannelId,
         kParentsAlertChannelName,
-        description: 'Alertes sonores et bannières de l’Institut Kalunga',
+        description: 'Alertes sonores Institut Kalunga',
         importance: Importance.max,
         playSound: true,
         sound: const RawResourceAndroidNotificationSound('kalunga_alert'),
@@ -79,7 +79,7 @@ class PushNotificationService {
         vibrationPattern: vibration,
         showBadge: true,
         enableLights: true,
-        audioAttributesUsage: AudioAttributesUsage.notificationRingtone,
+        audioAttributesUsage: AudioAttributesUsage.alarm,
       ),
     );
     await androidPlugin?.requestNotificationsPermission();
@@ -88,13 +88,32 @@ class PushNotificationService {
         IOSFlutterLocalNotificationsPlugin>();
     await iosPlugin?.requestPermissions(alert: true, badge: true, sound: true);
 
-    try {
-      await _player.setReleaseMode(ReleaseMode.stop);
-      await _player.setVolume(1.0);
-    } catch (_) {}
+    await _configureAudio();
 
     _ready = true;
     await _initFirebaseMessaging();
+  }
+
+  Future<void> _configureAudio() async {
+    if (_audioConfigured) return;
+    try {
+      if (defaultTargetPlatform == TargetPlatform.android) {
+        await AudioPlayer.global.setAudioContext(
+          AudioContext(
+            android: const AudioContextAndroid(
+              isSpeakerphoneOn: true,
+              stayAwake: true,
+              contentType: AndroidContentType.sonification,
+              usageType: AndroidUsageType.alarm,
+              audioFocus: AndroidAudioFocus.gainTransientMayDuck,
+            ),
+          ),
+        );
+      }
+      await _player.setReleaseMode(ReleaseMode.stop);
+      await _player.setVolume(1.0);
+      _audioConfigured = true;
+    } catch (_) {}
   }
 
   Future<void> _initFirebaseMessaging() async {
@@ -134,14 +153,39 @@ class PushNotificationService {
     _fcmReady = true;
   }
 
+  /// Son fort : ringtone système (flux alarme) + WAV + vibration.
   Future<void> _playAlertTone() async {
+    await _configureAudio();
+
+    // 1) Sonnerie / notif système Android (le plus fiable).
+    try {
+      await _ringtone.play(
+        android: AndroidSounds.notification,
+        ios: IosSounds.triTone,
+        volume: 1.0,
+        looping: false,
+        asAlarm: true, // ignore le mode vibreur / silencieux soft
+      );
+    } catch (_) {
+      try {
+        await _ringtone.playNotification(volume: 1.0, asAlarm: true);
+      } catch (_) {}
+    }
+
+    // 2) Notre WAV en flux « alarme ».
     try {
       await _player.stop();
-      await _player.play(AssetSource('sounds/kalunga_alert.wav'));
+      await _player.play(AssetSource('sounds/kalunga_alert.wav'), volume: 1.0);
+    } catch (_) {}
+
+    // 3) Vibration + clic système de secours.
+    try {
+      await HapticFeedback.heavyImpact();
+      await SystemSound.play(SystemSoundType.alert);
     } catch (_) {}
   }
 
-  /// Son + bannière système (tête d’écran) + bannière in-app.
+  /// Son + notif système + callback bannière in-app.
   Future<void> showLocalAlert({
     required String title,
     required String body,
@@ -150,15 +194,15 @@ class PushNotificationService {
     if (kIsWeb) return;
     if (!_ready) await init();
 
-    // 1) Son garanti (même si le canal Android est muet / OEM bizarre).
+    onInApp?.call(InAppAlert(title: title, body: body));
     await _playAlertTone();
 
-    final vibration = Int64List.fromList([0, 400, 200, 400]);
+    final vibration = Int64List.fromList([0, 500, 200, 500, 200, 500]);
 
     final androidDetails = AndroidNotificationDetails(
       kParentsAlertChannelId,
       kParentsAlertChannelName,
-      channelDescription: 'Alertes sonores et bannières de l’Institut Kalunga',
+      channelDescription: 'Alertes sonores Institut Kalunga',
       importance: Importance.max,
       priority: Priority.max,
       playSound: true,
@@ -168,9 +212,8 @@ class PushNotificationService {
       category: AndroidNotificationCategory.alarm,
       visibility: NotificationVisibility.public,
       ticker: 'Alerte Institut Kalunga',
-      fullScreenIntent: false,
       styleInformation: BigTextStyleInformation(body, contentTitle: title),
-      audioAttributesUsage: AudioAttributesUsage.notificationRingtone,
+      audioAttributesUsage: AudioAttributesUsage.alarm,
       icon: '@drawable/ic_stat_notify',
       channelShowBadge: true,
       onlyAlertOnce: false,
@@ -194,8 +237,6 @@ class PushNotificationService {
         ),
       );
     } catch (_) {}
-
-    onInApp?.call(InAppAlert(title: title, body: body));
   }
 
   Future<void> syncDeviceToken(String guardianPublicId) async {
@@ -246,7 +287,6 @@ final pushNotificationServiceProvider = Provider<PushNotificationService>((ref) 
   return PushNotificationService(api: ref.watch(apiServiceProvider));
 });
 
-/// Initialise canal + FCM après connexion (mobile uniquement).
 final pushBootstrapProvider = Provider<void>((ref) {
   ref.listen<AuthSessionState>(authSessionProvider, (prev, next) async {
     if (next is! AuthSessionAuthenticated) return;
