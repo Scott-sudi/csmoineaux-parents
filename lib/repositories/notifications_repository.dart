@@ -12,9 +12,21 @@ class NotificationsRepository {
   final NotificationsService _notifications;
   final AuthService _auth;
 
-  Future<ParentNotificationsResult> load() async {
+  Future<String> _guardianId() async {
     final parent = await _auth.readParentSession();
-    final guardianId = parent?.guardianPublicId ?? '';
-    return _notifications.fetchNotifications(guardianPublicId: guardianId);
+    return parent?.guardianPublicId ?? '';
+  }
+
+  Future<ParentNotificationsResult> load() async {
+    return _notifications.fetchNotifications(
+      guardianPublicId: await _guardianId(),
+      limit: 80,
+    );
+  }
+
+  Future<ParentNotificationsResult> markAllRead() async {
+    return _notifications.markAllRead(
+      guardianPublicId: await _guardianId(),
+    );
   }
 }

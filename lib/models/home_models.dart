@@ -8,6 +8,7 @@ class HomeOverview extends Equatable {
     required this.childrenCount,
     required this.notificationsCount,
     required this.unpaidBalanceLabel,
+    this.paidBalanceLabel = 'Aucun',
     this.generalAveragePercent,
     this.unreadNotificationsBadge = 0,
   });
@@ -15,8 +16,9 @@ class HomeOverview extends Equatable {
   final String schoolYearLabel;
   final int childrenCount;
   final int notificationsCount;
-  /// `null` tant que les bulletins/notes ne sont pas exposés aux parents.
+  /// Conservé pour compat ; l’UI affiche désormais [paidBalanceLabel].
   final int? generalAveragePercent;
+  final String paidBalanceLabel;
   final String unpaidBalanceLabel;
   final int unreadNotificationsBadge;
 
@@ -31,6 +33,7 @@ class HomeOverview extends Equatable {
       childrenCount: json['children_count'] as int? ?? 0,
       notificationsCount: json['notifications_count'] as int? ?? 0,
       generalAveragePercent: average,
+      paidBalanceLabel: json['paid_balance_label']?.toString() ?? 'Aucun',
       unpaidBalanceLabel: json['unpaid_balance_label']?.toString() ?? 'Aucun',
       unreadNotificationsBadge: json['unread_notifications_badge'] as int? ?? 0,
     );
@@ -42,6 +45,7 @@ class HomeOverview extends Equatable {
         childrenCount,
         notificationsCount,
         generalAveragePercent,
+        paidBalanceLabel,
         unpaidBalanceLabel,
         unreadNotificationsBadge,
       ];

@@ -17,6 +17,7 @@ class ParentNotificationItem extends Equatable {
     this.studentId = '',
     this.studentName = '',
     this.source = '',
+    this.sourceId = '',
   });
 
   final String id;
@@ -29,6 +30,15 @@ class ParentNotificationItem extends Equatable {
   final String studentId;
   final String studentName;
   final String source;
+  final String sourceId;
+
+  /// UUID métier extrait de `source_id` ou de `id` (`payment:uuid`).
+  String get resolvedSourceId {
+    if (sourceId.trim().isNotEmpty) return sourceId.trim();
+    final parts = id.split(':');
+    if (parts.length >= 2) return parts.sublist(1).join(':');
+    return id;
+  }
 
   /// Filtre maquette : toutes / generales / scolaires / financieres.
   String get filterBucket {
@@ -37,10 +47,13 @@ class ParentNotificationItem extends Equatable {
         return 'financieres';
       case 'discipline_summons':
       case 'discipline_incident':
+      case 'discipline_attendance':
+        // Présence, convocations, incidents → onglet Scolaires.
         return 'scolaires';
       case 'secretariat_communication':
         return type == ActivityType.bulletin ? 'scolaires' : 'generales';
       default:
+        if (source.startsWith('discipline_')) return 'scolaires';
         if (type == ActivityType.fees) return 'financieres';
         if (type == ActivityType.meeting || type == ActivityType.bulletin) {
           return 'scolaires';
@@ -58,6 +71,9 @@ class ParentNotificationItem extends Equatable {
       case ActivityType.fees:
         return AppColors.activityFees;
       case ActivityType.info:
+        if (source == 'discipline_attendance') {
+          return const Color(0xFF2E7D32);
+        }
         return source.startsWith('discipline')
             ? const Color(0xFFC62828)
             : AppColors.primaryLight;
@@ -72,6 +88,8 @@ class ParentNotificationItem extends Equatable {
         return Icons.campaign_outlined;
       case 'discipline_incident':
         return Icons.warning_amber_rounded;
+      case 'discipline_attendance':
+        return Icons.how_to_reg_outlined;
       case 'secretariat_communication':
         return type == ActivityType.bulletin
             ? Icons.description_outlined
@@ -116,11 +134,12 @@ class ParentNotificationItem extends Equatable {
       studentId: json['student_id']?.toString() ?? '',
       studentName: json['student_name']?.toString() ?? '',
       source: json['source']?.toString() ?? '',
+      sourceId: json['source_id']?.toString() ?? '',
     );
   }
 
   @override
-  List<Object?> get props => [id, title, isRead, type];
+  List<Object?> get props => [id, title, isRead, type, sourceId];
 }
 
 class ParentNotificationsResult extends Equatable {

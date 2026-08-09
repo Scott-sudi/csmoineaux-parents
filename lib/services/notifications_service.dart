@@ -32,4 +32,25 @@ class NotificationsService {
       throw const NetworkException();
     }
   }
+
+  /// Marque toute l'inbox comme lue côté serveur (badge persistant).
+  Future<ParentNotificationsResult> markAllRead({
+    required String guardianPublicId,
+  }) async {
+    try {
+      final response = await _api.post<ParentNotificationsResult>(
+        ApiEndpoints.parentNotificationsMarkRead,
+        data: {'guardian_public_id': guardianPublicId},
+        parser: (raw) => ParentNotificationsResult.fromJson(
+          Map<String, dynamic>.from(raw as Map),
+        ),
+      );
+      return response.data ??
+          const ParentNotificationsResult(items: []);
+    } on ApiException {
+      rethrow;
+    } catch (_) {
+      throw const NetworkException();
+    }
+  }
 }

@@ -1,16 +1,10 @@
 import 'package:flutter/material.dart';
 
-import '../../constants/app_constants.dart';
 import '../../core/theme/app_colors.dart';
 
 /// État vide — maquette « Mes Enfants ».
 class ChildrenEmptyState extends StatelessWidget {
-  const ChildrenEmptyState({
-    super.key,
-    this.onAddChild,
-  });
-
-  final VoidCallback? onAddChild;
+  const ChildrenEmptyState({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -43,25 +37,6 @@ class ChildrenEmptyState extends StatelessWidget {
                 fontSize: 14,
                 color: AppColors.textSecondary,
                 height: 1.4,
-              ),
-            ),
-            const SizedBox(height: 24),
-            SizedBox(
-              width: double.infinity,
-              height: 48,
-              child: ElevatedButton(
-                onPressed: onAddChild,
-                style: ElevatedButton.styleFrom(
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(
-                      AppConstants.radiusButton,
-                    ),
-                  ),
-                ),
-                child: const Text(
-                  'Ajouter un enfant',
-                  style: TextStyle(fontWeight: FontWeight.w600),
-                ),
               ),
             ),
           ],

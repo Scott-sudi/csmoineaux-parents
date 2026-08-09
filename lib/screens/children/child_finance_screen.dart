@@ -56,7 +56,7 @@ class ChildFinanceScreen extends ConsumerWidget {
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: AppColors.activityFees.withOpacity(0.92),
+                  color: const Color(0xFF111111),
                   borderRadius: BorderRadius.circular(14),
                 ),
                 child: Column(

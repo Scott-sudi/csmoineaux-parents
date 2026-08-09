@@ -2,8 +2,9 @@ import '../constants/api_endpoints.dart';
 import '../core/errors/api_exception.dart';
 import '../core/network/api_service.dart';
 import '../models/child_module_models.dart';
+import '../models/student_id_card.dart';
 
-/// Modules par enfant (présence, discipline, finance) — API Django.
+/// Modules par enfant (présence, discipline, finance, carte) — API Django.
 class ChildModulesService {
   ChildModulesService({required ApiService api}) : _api = api;
 
@@ -86,6 +87,30 @@ class ChildModulesService {
             obligations: [],
             payments: [],
           );
+    } on ApiException {
+      rethrow;
+    } catch (_) {
+      throw const NetworkException();
+    }
+  }
+
+  Future<StudentIdCard> fetchCard({
+    required String guardianPublicId,
+    required String studentId,
+  }) async {
+    try {
+      final response = await _api.get<StudentIdCard>(
+        ApiEndpoints.childCard(studentId),
+        queryParameters: {'guardian_public_id': guardianPublicId},
+        parser: (raw) => StudentIdCard.fromJson(
+          Map<String, dynamic>.from(raw as Map),
+        ),
+      );
+      final data = response.data;
+      if (data == null) {
+        throw const ServerException('Carte d’élève introuvable.');
+      }
+      return data;
     } on ApiException {
       rethrow;
     } catch (_) {

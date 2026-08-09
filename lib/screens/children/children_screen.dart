@@ -8,9 +8,9 @@ import '../../providers/children_providers.dart';
 import '../../widgets/children/child_card.dart';
 import '../../widgets/children/children_empty_state.dart';
 import 'child_attendance_screen.dart';
-import 'child_detail_screen.dart';
 import 'child_discipline_screen.dart';
 import 'child_finance_screen.dart';
+import 'student_id_card_screen.dart';
 
 /// Écran « Mes Enfants » — maquette (sans Devoirs ; Voir conservé).
 class ChildrenScreen extends ConsumerWidget {
@@ -31,13 +31,6 @@ class ChildrenScreen extends ConsumerWidget {
           'Mes Enfants',
           style: TextStyle(fontWeight: FontWeight.w700),
         ),
-        actions: [
-          IconButton(
-            tooltip: 'Ajouter un enfant',
-            onPressed: () => _showComingSoon(context),
-            icon: const Icon(Icons.add_circle_outline),
-          ),
-        ],
       ),
       body: asyncChildren.when(
         loading: () => const Center(
@@ -60,9 +53,7 @@ class ChildrenScreen extends ConsumerWidget {
                 children: [
                   SizedBox(
                     height: MediaQuery.sizeOf(context).height * 0.55,
-                    child: ChildrenEmptyState(
-                      onAddChild: () => _showComingSoon(context),
-                    ),
+                    child: const ChildrenEmptyState(),
                   ),
                 ],
               ),
@@ -102,7 +93,7 @@ class ChildrenScreen extends ConsumerWidget {
   void _openDetail(BuildContext context, ChildSummary child) {
     Navigator.of(context).push(
       MaterialPageRoute<void>(
-        builder: (_) => ChildDetailScreen(child: child),
+        builder: (_) => StudentIdCardScreen(child: child),
       ),
     );
   }
@@ -129,13 +120,6 @@ class ChildrenScreen extends ConsumerWidget {
     );
   }
 
-  void _showComingSoon(BuildContext context) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Ajout d’un enfant — à venir.'),
-      ),
-    );
-  }
 }
 
 class _ErrorState extends StatelessWidget {

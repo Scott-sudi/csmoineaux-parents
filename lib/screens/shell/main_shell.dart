@@ -3,50 +3,74 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/theme/app_theme_colors.dart';
 import '../../providers/home_providers.dart';
+import '../../providers/live_refresh_provider.dart';
+import '../../services/push_notification_service.dart';
 import '../../widgets/navigation/custom_bottom_navbar.dart';
-import '../about/about_screen.dart';
 import '../account/account_screen.dart';
 import '../children/children_screen.dart';
 import '../home/home_screen.dart';
 import '../notifications/notifications_screen.dart';
 
-/// Coquille principale : Accueil + onglets navigables.
+/// Coquille principale : Accueil + onglets navigables (4).
 class MainShell extends ConsumerWidget {
   const MainShell({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Active l'actualisation auto + canal notifications.
+    ref.watch(liveRefreshProvider);
+    ref.watch(pushBootstrapProvider);
+
     final index = ref.watch(bottomNavIndexProvider);
+    // Ancien index « À propos » (3) → Mon Compte (3 maintenant).
+    final safeIndex = index.clamp(0, 3);
+    if (safeIndex != index) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        ref.read(bottomNavIndexProvider.notifier).state = safeIndex;
+      });
+    }
+
     final dashboard = ref.watch(homeDashboardProvider);
-    final badge = dashboard.maybeWhen(
+    final serverUnread = dashboard.maybeWhen(
       data: (d) => d.overview.unreadNotificationsBadge,
       orElse: () => 0,
     );
+    final badge = visibleNotificationsBadge(ref, serverUnread);
+
+    // Dès que l'onglet Notifications est actif → marquer comme lu.
+    ref.listen<int>(bottomNavIndexProvider, (prev, next) {
+      if (next == 2 && prev != 2) {
+        markNotificationsAsSeen(ref);
+      }
+    });
 
     return Scaffold(
       backgroundColor: context.appBackground,
       body: SafeArea(
         bottom: false,
         child: IndexedStack(
-          index: index,
+          index: safeIndex,
           children: [
             HomeScreen(
-              onOpenNotifications: () {
+              onOpenNotifications: () async {
                 ref.read(bottomNavIndexProvider.notifier).state = 2;
+                await markNotificationsAsSeen(ref);
               },
             ),
             const ChildrenScreen(),
             const NotificationsScreen(),
-            const AboutScreen(),
             const AccountScreen(),
           ],
         ),
       ),
       bottomNavigationBar: CustomBottomNavbar(
-        currentIndex: index,
+        currentIndex: safeIndex,
         notificationBadge: badge,
-        onTap: (value) {
+        onTap: (value) async {
           ref.read(bottomNavIndexProvider.notifier).state = value;
+          if (value == 2) {
+            await markNotificationsAsSeen(ref);
+          }
         },
       ),
     );

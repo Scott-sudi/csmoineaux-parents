@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../models/child_module_models.dart';
+import '../models/student_id_card.dart';
 import 'dependency_providers.dart';
 
 final childAttendanceProvider = FutureProvider.autoDispose
@@ -32,4 +33,12 @@ final childFinanceProvider =
   return ref
       .watch(childModulesRepositoryProvider)
       .loadFinance(studentId: studentId);
+});
+
+final childIdCardProvider =
+    FutureProvider.autoDispose.family<StudentIdCard, String>((
+  ref,
+  studentId,
+) async {
+  return ref.watch(childModulesRepositoryProvider).loadCard(studentId: studentId);
 });

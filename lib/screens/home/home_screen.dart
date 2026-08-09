@@ -47,6 +47,10 @@ class HomeScreen extends ConsumerWidget {
           greetingName: sessionName.isNotEmpty
               ? sessionName
               : dashboard.parentDisplayName,
+          notificationCount: visibleNotificationsBadge(
+            ref,
+            dashboard.overview.unreadNotificationsBadge,
+          ),
           onOpenNotifications: onOpenNotifications,
           helloLabel: s.hello,
           welcomeLabel: s.welcomeSchool,
@@ -54,7 +58,7 @@ class HomeScreen extends ConsumerWidget {
           overviewTitle: s.overview,
           childrenLabel: s.children,
           notificationsLabel: s.navNotifications,
-          averageLabel: s.generalAverage,
+          averageLabel: s.paidBalance,
           balanceLabel: s.unpaidBalance,
           recentTitle: s.recentActivities,
           seeAllLabel: s.seeAll,
@@ -73,6 +77,7 @@ class _HomeBody extends StatelessWidget {
   const _HomeBody({
     required this.dashboard,
     required this.greetingName,
+    required this.notificationCount,
     required this.onRefresh,
     required this.helloLabel,
     required this.welcomeLabel,
@@ -90,6 +95,7 @@ class _HomeBody extends StatelessWidget {
 
   final HomeDashboard dashboard;
   final String greetingName;
+  final int notificationCount;
   final Future<void> Function() onRefresh;
   final VoidCallback? onOpenNotifications;
   final String helloLabel;
@@ -115,7 +121,7 @@ class _HomeBody extends StatelessWidget {
           SliverToBoxAdapter(
             child: HomeHeader(
               parentName: greetingName,
-              notificationCount: dashboard.overview.unreadNotificationsBadge,
+              notificationCount: notificationCount,
               onNotificationTap: onOpenNotifications,
               helloLabel: helloLabel,
               welcomeLabel: welcomeLabel,

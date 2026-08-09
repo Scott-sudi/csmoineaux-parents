@@ -49,6 +49,31 @@ class AppStrings {
         'Je, unataka kweli kutoka?',
       );
   String get cancel => _t('Annuler', 'Cancel', 'Ghairi');
+  String get changeProfilePhoto => _t(
+        'Photo de profil',
+        'Profile photo',
+        'Picha ya wasifu',
+      );
+  String get chooseFromGallery => _t(
+        'Choisir dans la galerie',
+        'Choose from gallery',
+        'Chagua kutoka kwenye galeria',
+      );
+  String get takePhoto => _t(
+        'Prendre une photo',
+        'Take a photo',
+        'Piga picha',
+      );
+  String get removePhoto => _t(
+        'Supprimer la photo',
+        'Remove photo',
+        'Ondoa picha',
+      );
+  String get photoPickFailed => _t(
+        'Impossible d’obtenir la photo. Réessayez.',
+        'Could not get the photo. Please try again.',
+        'Imeshindikana kupata picha. Jaribu tena.',
+      );
   String get copied => _t(
         'Copié dans le presse-papiers.',
         'Copied to clipboard.',
@@ -129,10 +154,12 @@ class AppStrings {
       );
   String get overview => _t('Vue d’ensemble', 'Overview', 'Muhtasari');
   String get children => _t('Enfants', 'Children', 'Watoto');
-  String get generalAverage =>
-      _t('Moyenne générale', 'Overall average', 'Wastani wa jumla');
+  String get paidBalance =>
+      _t('Soldes payés', 'Paid balance', 'Salio lililolipwa');
   String get unpaidBalance =>
       _t('Solde impayé', 'Unpaid balance', 'Salio lisilolipwa');
+  String get filterNotifications =>
+      _t('Filtrer', 'Filter', 'Chuja');
   String get recentActivities =>
       _t('Activités récentes', 'Recent activity', 'Shughuli za hivi karibuni');
   String get seeAll => _t('Voir tout', 'See all', 'Angalia zote');
@@ -149,6 +176,14 @@ class AppStrings {
   String get filterGeneral => _t('Générales', 'General', 'Jumla');
   String get filterSchool => _t('Scolaires', 'School', 'Shuleni');
   String get filterFinance => _t('Financières', 'Financial', 'Fedha');
+  String get seeMore => _t('Voir plus', 'See more', 'Angalia zaidi');
+  String get markAllAsRead =>
+      _t('Tout marquer comme lu', 'Mark all as read', 'Weka zote zimesomwa');
+  String get markedAllAsRead => _t(
+        'Toutes les notifications sont marquées comme lues.',
+        'All notifications marked as read.',
+        'Arifa zote zimewekwa kuwa zimesomwa.',
+      );
   String get noNotifications => _t(
         'Aucune notification pour le moment.',
         'No notifications yet.',
@@ -159,6 +194,11 @@ class AppStrings {
         'No notifications in “$tab”.',
         'Hakuna arifa katika “$tab”.',
       );
+  String get scolairesHint => _t(
+        'Présences, retards, convocations et discipline apparaissent ici.',
+        'Attendance, lateness, summons and discipline appear here.',
+        'Mahudhurio, kuchelewa, wito na nidhamu huonekana hapa.',
+      );
   String get advancedFiltersSoon => _t(
         'Filtres avancés — à venir.',
         'Advanced filters — coming soon.',
@@ -168,4 +208,18 @@ class AppStrings {
   // —— Enfants / divers ——
   String get myChildren => navChildren;
   String get aboutTitle => navAbout;
+
+  // —— À propos ——
+  String get presentation =>
+      _t('Présentation', 'Presentation', 'Utangulizi');
+  String get ourOptions =>
+      _t('Nos options', 'Our options', 'Chaguzi zetu');
+  String get ourLevels =>
+      _t('Nos niveaux', 'Our levels', 'Ngazi zetu');
+  String get contactUs =>
+      _t('Nous contacter', 'Contact us', 'Wasiliana nasi');
+  String get levelNursery => _t('Maternel', 'Nursery', 'Chekechea');
+  String get levelPrimary => _t('Primaire', 'Primary', 'Msingi');
+  String get levelSecondary =>
+      _t('Secondaire', 'Secondary', 'Sekondari');
 }

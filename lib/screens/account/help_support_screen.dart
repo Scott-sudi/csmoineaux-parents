@@ -35,21 +35,30 @@ class HelpSupportScreen extends ConsumerWidget {
               _ContactTile(
                 icon: Icons.phone_outlined,
                 title: s.phone,
-                subtitle: AppConstants.schoolPhone,
-                onTap: () => _copy(context, AppConstants.schoolPhone, s.copied),
+                subtitle: AppConstants.schoolPhonePrimary,
+                onTap: () => _copy(
+                  context,
+                  AppConstants.schoolPhonePrimary,
+                  s.copied,
+                ),
               ),
               Divider(height: 1, indent: 56, color: context.appDivider),
               _ContactTile(
-                icon: Icons.email_outlined,
-                title: s.email,
-                subtitle: AppConstants.schoolEmail,
-                onTap: () => _copy(context, AppConstants.schoolEmail, s.copied),
+                icon: Icons.phone_outlined,
+                title: s.phone,
+                subtitle: AppConstants.schoolPhoneSecondary,
+                onTap: () => _copy(
+                  context,
+                  AppConstants.schoolPhoneSecondary,
+                  s.copied,
+                ),
               ),
               Divider(height: 1, indent: 56, color: context.appDivider),
               _ContactTile(
                 icon: Icons.place_outlined,
                 title: s.address,
-                subtitle: AppConstants.schoolAddress,
+                subtitle:
+                    '${AppConstants.schoolAddress} · ${AppConstants.schoolBp}',
               ),
               Divider(height: 1, indent: 56, color: context.appDivider),
               _ContactTile(

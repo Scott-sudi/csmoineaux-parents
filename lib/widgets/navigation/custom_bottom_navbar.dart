@@ -5,7 +5,7 @@ import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_theme_colors.dart';
 import '../../providers/settings_providers.dart';
 
-/// Barre de navigation inférieure à 5 onglets (maquette).
+/// Barre de navigation inférieure à 4 onglets (À propos est dans Mon Compte).
 class CustomBottomNavbar extends ConsumerWidget {
   const CustomBottomNavbar({
     super.key,
@@ -46,9 +46,10 @@ class CustomBottomNavbar extends ConsumerWidget {
           elevation: 0,
           selectedItemColor: selected,
           unselectedItemColor: unselected,
-          selectedFontSize: 11,
-          unselectedFontSize: 10,
-          selectedLabelStyle: const TextStyle(fontWeight: FontWeight.w600),
+          selectedFontSize: 12.5,
+          unselectedFontSize: 12,
+          iconSize: 26,
+          selectedLabelStyle: const TextStyle(fontWeight: FontWeight.w700),
           unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w500),
           items: [
             BottomNavigationBarItem(
@@ -73,11 +74,6 @@ class CustomBottomNavbar extends ConsumerWidget {
                 selected: true,
               ),
               label: s.navNotifications,
-            ),
-            BottomNavigationBarItem(
-              icon: const Icon(Icons.info_outline),
-              activeIcon: const Icon(Icons.info),
-              label: s.navAbout,
             ),
             BottomNavigationBarItem(
               icon: const Icon(Icons.person_outline),
@@ -113,6 +109,7 @@ class _NavBadgeIcon extends StatelessWidget {
       ),
       child: Icon(
         icon,
+        size: 26,
         color: selected ? context.appPrimary : context.appTextSecondary,
       ),
     );

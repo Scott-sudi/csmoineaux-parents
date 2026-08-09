@@ -85,10 +85,8 @@ class OverviewCard extends StatelessWidget {
             children: [
               Expanded(
                 child: _StatTile(
-                  icon: Icons.show_chart,
-                  value: overview.generalAveragePercent == null
-                      ? '—'
-                      : '${overview.generalAveragePercent}%',
+                  icon: Icons.payments_outlined,
+                  value: overview.paidBalanceLabel,
                   label: averageLabel,
                 ),
               ),

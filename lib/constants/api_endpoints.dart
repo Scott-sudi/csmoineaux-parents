@@ -20,6 +20,19 @@ abstract final class ApiEndpoints {
   static const String parentRecentActivities = 'parents/home/activities/';
   static const String parentNotifications = 'parents/notifications/';
   static const String notifications = 'parents/notifications/';
+  static const String parentNotificationsMarkRead = 'parents/notifications/';
+  static const String parentDeviceRegister = 'parents/devices/register/';
+
+  static String parentCommunicationDetail(String id) =>
+      'parents/communications/$id/';
+
+  static String parentPaymentReceipt(String id) => 'parents/payments/$id/';
+
+  static String parentPaymentReceiptPdf(String id) =>
+      'parents/payments/$id/receipt.pdf';
+
+  static String parentDisciplineDetail(String kind, String id) =>
+      'parents/discipline/$kind/$id/';
   static const String parentProfile = 'parents/profile/';
   static const String children = 'parents/children/';
 
@@ -31,4 +44,7 @@ abstract final class ApiEndpoints {
 
   static String childFinance(String studentId) =>
       'parents/children/$studentId/finance/';
+
+  static String childCard(String studentId) =>
+      'parents/children/$studentId/card/';
 }

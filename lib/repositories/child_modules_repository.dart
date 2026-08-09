@@ -1,4 +1,5 @@
 import '../models/child_module_models.dart';
+import '../models/student_id_card.dart';
 import '../services/auth_service.dart';
 import '../services/child_modules_service.dart';
 
@@ -37,6 +38,13 @@ class ChildModulesRepository {
 
   Future<ChildFinanceSituation> loadFinance({required String studentId}) async {
     return _modules.fetchFinance(
+      guardianPublicId: await _guardianId(),
+      studentId: studentId,
+    );
+  }
+
+  Future<StudentIdCard> loadCard({required String studentId}) async {
+    return _modules.fetchCard(
       guardianPublicId: await _guardianId(),
       studentId: studentId,
     );

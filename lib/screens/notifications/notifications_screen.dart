@@ -2,13 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../constants/app_constants.dart';
+import '../../core/l10n/app_strings.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_theme_colors.dart';
 import '../../models/notification_models.dart';
+import '../../providers/home_providers.dart';
 import '../../providers/notifications_providers.dart';
 import '../../providers/settings_providers.dart';
+import 'notification_detail_router.dart';
 
-/// Onglet Notifications — maquette : filtres Toutes / Générales / Scolaires / Financières.
+/// Onglet Notifications — filtres Toutes / Générales / Scolaires / Financières.
 class NotificationsScreen extends ConsumerStatefulWidget {
   const NotificationsScreen({super.key});
 
@@ -20,7 +23,10 @@ class NotificationsScreen extends ConsumerStatefulWidget {
 class _NotificationsScreenState extends ConsumerState<NotificationsScreen>
     with SingleTickerProviderStateMixin {
   late final TabController _tabs;
+  bool _markingRead = false;
+  int _visibleCount = _pageSize;
 
+  static const _pageSize = 10;
   static const _filterKeys = ['toutes', 'generales', 'scolaires', 'financieres'];
 
   @override
@@ -28,7 +34,9 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen>
     super.initState();
     _tabs = TabController(length: _filterKeys.length, vsync: this);
     _tabs.addListener(() {
-      if (!_tabs.indexIsChanging) setState(() {});
+      if (!_tabs.indexIsChanging) {
+        setState(() => _visibleCount = _pageSize);
+      }
     });
   }
 
@@ -56,12 +64,76 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen>
     return items.where((e) => e.filterBucket == key).toList();
   }
 
+  Future<void> _markAllAsRead(AppStrings s) async {
+    if (_markingRead) return;
+    setState(() => _markingRead = true);
+    try {
+      await markNotificationsAsSeen(ref);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(s.markedAllAsRead)),
+      );
+    } finally {
+      if (mounted) setState(() => _markingRead = false);
+    }
+  }
+
+  Future<void> _openFilterSheet(
+    BuildContext context,
+    AppStrings s,
+    List<({String key, String label})> filters,
+  ) async {
+    final selected = await showModalBottomSheet<int>(
+      context: context,
+      backgroundColor: context.appCard,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (ctx) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                child: Text(
+                  s.filterNotifications,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+              for (var i = 0; i < filters.length; i++)
+                ListTile(
+                  title: Text(filters[i].label),
+                  trailing: i == _tabs.index
+                      ? Icon(Icons.check, color: context.appPrimary)
+                      : null,
+                  onTap: () => Navigator.pop(ctx, i),
+                ),
+              const SizedBox(height: 8),
+            ],
+          ),
+        );
+      },
+    );
+    if (selected != null && selected != _tabs.index) {
+      _tabs.animateTo(selected);
+      setState(() => _visibleCount = _pageSize);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final asyncData = ref.watch(parentNotificationsProvider);
     final s = ref.watch(appStringsProvider);
     final filters = _filters(ref);
     final currentKey = filters[_tabs.index].key;
+    final hasUnread = asyncData.maybeWhen(
+      data: (r) => r.items.any((e) => !e.isRead) || r.unreadCount > 0,
+      orElse: () => false,
+    );
 
     return Scaffold(
       backgroundColor: context.appBackground,
@@ -80,13 +152,27 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen>
           ),
         ),
         actions: [
+          if (hasUnread || _markingRead)
+            IconButton(
+              tooltip: s.markAllAsRead,
+              onPressed: _markingRead ? null : () => _markAllAsRead(s),
+              icon: _markingRead
+                  ? SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: context.appPrimary,
+                      ),
+                    )
+                  : Icon(
+                      Icons.done_all,
+                      color: context.appPrimary,
+                    ),
+            ),
           IconButton(
-            tooltip: s.languageMenu,
-            onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(s.advancedFiltersSoon)),
-              );
-            },
+            tooltip: s.filterNotifications,
+            onPressed: () => _openFilterSheet(context, s, filters),
             icon: Icon(Icons.filter_list, color: context.appTextPrimary),
           ),
         ],
@@ -149,28 +235,71 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen>
             return Center(
               child: Padding(
                 padding: const EdgeInsets.all(24),
-                child: Text(
-                  result.items.isEmpty
-                      ? s.noNotifications
-                      : s.noNotificationsIn(filters[_tabs.index].label),
-                  textAlign: TextAlign.center,
-                  style: TextStyle(color: context.appTextSecondary),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      result.items.isEmpty
+                          ? s.noNotifications
+                          : s.noNotificationsIn(filters[_tabs.index].label),
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: context.appTextSecondary),
+                    ),
+                    if (currentKey == 'scolaires') ...[
+                      const SizedBox(height: 10),
+                      Text(
+                        s.scolairesHint,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: context.appTextSecondary.withOpacity(0.9),
+                          fontSize: 13,
+                        ),
+                      ),
+                    ],
+                  ],
                 ),
               ),
             );
           }
+
+          final shown = items.take(_visibleCount).toList();
+          final hasMore = shown.length < items.length;
+
           return RefreshIndicator(
             color: AppColors.primary,
             onRefresh: () async {
+              setState(() => _visibleCount = _pageSize);
               ref.invalidate(parentNotificationsProvider);
               await ref.read(parentNotificationsProvider.future);
             },
             child: ListView.separated(
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 28),
-              itemCount: items.length,
+              itemCount: shown.length + (hasMore ? 1 : 0),
               separatorBuilder: (_, __) => const SizedBox(height: 10),
               itemBuilder: (context, index) {
-                return _NotificationCard(item: items[index]);
+                if (index >= shown.length) {
+                  return Padding(
+                    padding: const EdgeInsets.only(top: 4, bottom: 8),
+                    child: Center(
+                      child: TextButton(
+                        onPressed: () {
+                          setState(() {
+                            _visibleCount += _pageSize;
+                          });
+                        },
+                        child: Text(
+                          s.seeMore,
+                          style: TextStyle(
+                            color: context.appPrimary,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 14.5,
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                }
+                return _NotificationCard(item: shown[index]);
               },
             ),
           );
@@ -193,7 +322,7 @@ class _NotificationCard extends StatelessWidget {
       elevation: context.isDarkTheme ? 0 : 1,
       shadowColor: AppColors.shadow,
       child: InkWell(
-        onTap: () {},
+        onTap: () => openNotificationDetail(context, item),
         borderRadius: BorderRadius.circular(AppConstants.radiusLarge),
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),

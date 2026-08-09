@@ -13,6 +13,7 @@ import '../services/children_service.dart';
 import '../services/home_service.dart';
 import '../services/login_service.dart';
 import '../services/notifications_service.dart';
+import '../services/notification_detail_service.dart';
 import '../services/phone_auth_service.dart';
 import '../services/user_service.dart';
 
@@ -113,5 +114,12 @@ final notificationsRepositoryProvider = Provider<NotificationsRepository>((ref) 
   return NotificationsRepository(
     notificationsService: ref.watch(notificationsServiceProvider),
     authService: ref.watch(authServiceProvider),
+  );
+});
+
+final notificationDetailServiceProvider = Provider<NotificationDetailService>((ref) {
+  return NotificationDetailService(
+    api: ref.watch(apiServiceProvider),
+    auth: ref.watch(authServiceProvider),
   );
 });
