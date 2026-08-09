@@ -1,3 +1,6 @@
+import 'dart:typed_data';
+
+import 'package:audioplayers/audioplayers.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
@@ -11,10 +14,20 @@ import '../providers/dependency_providers.dart';
 import '../providers/home_providers.dart';
 import '../providers/notifications_providers.dart';
 
-/// Canal Android — nouveau id pour forcer son + vibration
-/// (Android verrouille les réglages d’un canal après création).
-const kParentsAlertChannelId = 'kalunga_parents_alerts_v2';
-const kParentsAlertChannelName = 'Institut Kalunga';
+/// Nouveau canal à chaque changement de son / importance
+/// (Android verrouille le canal après la 1re création).
+const kParentsAlertChannelId = 'kalunga_parents_alerts_v3';
+const kParentsAlertChannelName = 'Alertes Institut Kalunga';
+
+/// Contenu pour la bannière en haut d’écran (style WhatsApp).
+class InAppAlert {
+  const InAppAlert({required this.title, required this.body});
+  final String title;
+  final String body;
+}
+
+/// Bannière flottante affichée dans l’app (en plus de la notif système).
+final inAppAlertProvider = StateProvider<InAppAlert?>((ref) => null);
 
 /// Handler push reçu app en arrière-plan / tuée (isolate dédié).
 @pragma('vm:entry-point')
@@ -24,17 +37,14 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   } catch (_) {}
 }
 
-/// Notifications locales (son) + push FCM (app ouverte / fermée).
-///
-/// - **App ouverte (APK)** : son via notification locale (refresh 25s + FCM foreground).
-/// - **App fermée** : FCM + `google-services.json` + `FCM_SERVER_KEY` serveur.
-/// - **Web** : pas de push système.
+/// Notifications locales (son + bannière) + push FCM.
 class PushNotificationService {
   PushNotificationService({required ApiService api}) : _api = api;
 
   final ApiService _api;
   final FlutterLocalNotificationsPlugin _local =
       FlutterLocalNotificationsPlugin();
+  final AudioPlayer _player = AudioPlayer();
 
   bool _ready = false;
   bool _fcmReady = false;
@@ -42,7 +52,8 @@ class PushNotificationService {
   Future<void> init() async {
     if (_ready || kIsWeb) return;
 
-    const androidInit = AndroidInitializationSettings('@mipmap/ic_launcher');
+    // Icône barre de statut : silhouette blanche (requis Android).
+    const androidInit = AndroidInitializationSettings('@drawable/ic_stat_notify');
     const iosInit = DarwinInitializationSettings(
       requestAlertPermission: true,
       requestSoundPermission: true,
@@ -52,17 +63,22 @@ class PushNotificationService {
       settings: const InitializationSettings(android: androidInit, iOS: iosInit),
     );
 
+    final vibration = Int64List.fromList([0, 400, 200, 400]);
+
     final androidPlugin = _local.resolvePlatformSpecificImplementation<
         AndroidFlutterLocalNotificationsPlugin>();
     await androidPlugin?.createNotificationChannel(
-      const AndroidNotificationChannel(
+      AndroidNotificationChannel(
         kParentsAlertChannelId,
         kParentsAlertChannelName,
-        description: 'Messages, présences et alertes de l’Institut Kalunga',
+        description: 'Alertes sonores et bannières de l’Institut Kalunga',
         importance: Importance.max,
         playSound: true,
+        sound: const RawResourceAndroidNotificationSound('kalunga_alert'),
         enableVibration: true,
+        vibrationPattern: vibration,
         showBadge: true,
+        enableLights: true,
         audioAttributesUsage: AudioAttributesUsage.notificationRingtone,
       ),
     );
@@ -71,6 +87,11 @@ class PushNotificationService {
     final iosPlugin = _local.resolvePlatformSpecificImplementation<
         IOSFlutterLocalNotificationsPlugin>();
     await iosPlugin?.requestPermissions(alert: true, badge: true, sound: true);
+
+    try {
+      await _player.setReleaseMode(ReleaseMode.stop);
+      await _player.setVolume(1.0);
+    } catch (_) {}
 
     _ready = true;
     await _initFirebaseMessaging();
@@ -81,7 +102,6 @@ class PushNotificationService {
     try {
       await Firebase.initializeApp();
     } catch (_) {
-      // Pas de google-services.json / Firebase → push distant indisponible.
       return;
     }
 
@@ -95,7 +115,6 @@ class PushNotificationService {
       provisional: false,
     );
 
-    // iOS : afficher aussi en foreground.
     await messaging.setForegroundNotificationPresentationOptions(
       alert: true,
       badge: true,
@@ -115,45 +134,70 @@ class PushNotificationService {
     _fcmReady = true;
   }
 
-  /// Affiche une notification système avec son (tonalité appareil).
+  Future<void> _playAlertTone() async {
+    try {
+      await _player.stop();
+      await _player.play(AssetSource('sounds/kalunga_alert.wav'));
+    } catch (_) {}
+  }
+
+  /// Son + bannière système (tête d’écran) + bannière in-app.
   Future<void> showLocalAlert({
     required String title,
     required String body,
+    void Function(InAppAlert alert)? onInApp,
   }) async {
     if (kIsWeb) return;
     if (!_ready) await init();
 
-    const androidDetails = AndroidNotificationDetails(
+    // 1) Son garanti (même si le canal Android est muet / OEM bizarre).
+    await _playAlertTone();
+
+    final vibration = Int64List.fromList([0, 400, 200, 400]);
+
+    final androidDetails = AndroidNotificationDetails(
       kParentsAlertChannelId,
       kParentsAlertChannelName,
-      channelDescription: 'Messages, présences et alertes de l’Institut Kalunga',
+      channelDescription: 'Alertes sonores et bannières de l’Institut Kalunga',
       importance: Importance.max,
       priority: Priority.max,
       playSound: true,
+      sound: const RawResourceAndroidNotificationSound('kalunga_alert'),
       enableVibration: true,
-      category: AndroidNotificationCategory.message,
+      vibrationPattern: vibration,
+      category: AndroidNotificationCategory.alarm,
       visibility: NotificationVisibility.public,
-      ticker: 'Nouvelle notification Institut Kalunga',
+      ticker: 'Alerte Institut Kalunga',
+      fullScreenIntent: false,
+      styleInformation: BigTextStyleInformation(body, contentTitle: title),
       audioAttributesUsage: AudioAttributesUsage.notificationRingtone,
+      icon: '@drawable/ic_stat_notify',
+      channelShowBadge: true,
+      onlyAlertOnce: false,
+      silent: false,
     );
     const iosDetails = DarwinNotificationDetails(
       presentAlert: true,
       presentSound: true,
       presentBadge: true,
+      interruptionLevel: InterruptionLevel.timeSensitive,
     );
 
-    await _local.show(
-      id: DateTime.now().millisecondsSinceEpoch.remainder(100000),
-      title: title,
-      body: body,
-      notificationDetails: const NotificationDetails(
-        android: androidDetails,
-        iOS: iosDetails,
-      ),
-    );
+    try {
+      await _local.show(
+        id: DateTime.now().millisecondsSinceEpoch.remainder(100000),
+        title: title,
+        body: body,
+        notificationDetails: NotificationDetails(
+          android: androidDetails,
+          iOS: iosDetails,
+        ),
+      );
+    } catch (_) {}
+
+    onInApp?.call(InAppAlert(title: title, body: body));
   }
 
-  /// Récupère le token FCM et l’enregistre côté Django.
   Future<void> syncDeviceToken(String guardianPublicId) async {
     if (kIsWeb || guardianPublicId.isEmpty) return;
     if (!_ready) await init();
@@ -211,7 +255,6 @@ final pushBootstrapProvider = Provider<void>((ref) {
     await push.init();
     await push.syncDeviceToken(next.identity.guardianPublicId);
 
-    // Si l’utilisateur ouvre l’app via une notif, rafraîchir l’inbox.
     try {
       FirebaseMessaging.onMessageOpenedApp.listen((_) {
         ref.invalidate(homeDashboardProvider);

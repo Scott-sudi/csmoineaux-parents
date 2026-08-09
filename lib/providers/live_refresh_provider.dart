@@ -8,8 +8,8 @@ import 'auth_providers.dart';
 import 'home_providers.dart';
 import 'notifications_providers.dart';
 
-/// Intervalle d'actualisation automatique (style messagerie).
-const _liveRefreshInterval = Duration(seconds: 25);
+/// Polling plus court pour alerter vite (style messagerie).
+const _liveRefreshInterval = Duration(seconds: 8);
 
 /// Garde Accueil + Notifications à jour sans pull-to-refresh.
 class LiveRefreshController extends StateNotifier<int>
@@ -26,6 +26,7 @@ class LiveRefreshController extends StateNotifier<int>
   Timer? _timer;
   ProviderSubscription<AuthSessionState>? _authSub;
   Set<String>? _knownIds;
+  bool _refreshing = false;
 
   void _syncWithAuth(AuthSessionState session) {
     if (session is AuthSessionAuthenticated) {
@@ -51,20 +52,24 @@ class LiveRefreshController extends StateNotifier<int>
 
   Future<void> refreshNow() async {
     if (_ref.read(authSessionProvider) is! AuthSessionAuthenticated) return;
-
-    _ref.invalidate(homeDashboardProvider);
-    _ref.invalidate(parentNotificationsProvider);
+    if (_refreshing) return;
+    _refreshing = true;
     state++;
 
     try {
-      await _ref.read(homeDashboardProvider.future);
+      _ref.invalidate(homeDashboardProvider);
+      _ref.invalidate(parentNotificationsProvider);
+
+      try {
+        await _ref.read(homeDashboardProvider.future);
+      } catch (_) {}
+
       final inbox = await _ref.read(parentNotificationsProvider.future);
-      final ids = inbox.items.map((e) => e.id).where((id) => id.isNotEmpty).toSet();
+      final ids =
+          inbox.items.map((e) => e.id).where((id) => id.isNotEmpty).toSet();
       final prev = _knownIds;
       _knownIds = ids;
 
-      // Son dès qu’un nouvel item apparaît (même déjà « lu » côté API,
-      // ex. paiement / incident) — pas seulement si le badge augmente.
       if (prev != null) {
         final newcomers = ids.difference(prev);
         if (newcomers.isNotEmpty) {
@@ -72,17 +77,27 @@ class LiveRefreshController extends StateNotifier<int>
             (e) => newcomers.contains(e.id),
             orElse: () => inbox.items.first,
           );
+          final title = newest.title.isNotEmpty
+              ? newest.title
+              : 'Institut Kalunga';
+          final body = newest.subtitle.isNotEmpty
+              ? newest.subtitle
+              : 'Vous avez une nouvelle notification.';
+
           await _ref.read(pushNotificationServiceProvider).showLocalAlert(
-                title: newest.title.isNotEmpty
-                    ? newest.title
-                    : 'Institut Kalunga',
-                body: newest.subtitle.isNotEmpty
-                    ? newest.subtitle
-                    : 'Vous avez une nouvelle notification.',
+                title: title,
+                body: body,
+                onInApp: (alert) {
+                  _ref.read(inAppAlertProvider.notifier).state = alert;
+                },
               );
         }
       }
-    } catch (_) {}
+    } catch (_) {
+      // Réseau / 429 : on réessaie au prochain tick.
+    } finally {
+      _refreshing = false;
+    }
   }
 
   @override

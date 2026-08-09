@@ -5,6 +5,7 @@ import '../../core/theme/app_theme_colors.dart';
 import '../../providers/home_providers.dart';
 import '../../providers/live_refresh_provider.dart';
 import '../../services/push_notification_service.dart';
+import '../../widgets/in_app_alert_host.dart';
 import '../../widgets/navigation/custom_bottom_navbar.dart';
 import '../account/account_screen.dart';
 import '../children/children_screen.dart';
@@ -44,34 +45,36 @@ class MainShell extends ConsumerWidget {
       }
     });
 
-    return Scaffold(
-      backgroundColor: context.appBackground,
-      body: SafeArea(
-        bottom: false,
-        child: IndexedStack(
-          index: safeIndex,
-          children: [
-            HomeScreen(
-              onOpenNotifications: () async {
-                ref.read(bottomNavIndexProvider.notifier).state = 2;
-                await markNotificationsAsSeen(ref);
-              },
-            ),
-            const ChildrenScreen(),
-            const NotificationsScreen(),
-            const AccountScreen(),
-          ],
+    return InAppAlertHost(
+      child: Scaffold(
+        backgroundColor: context.appBackground,
+        body: SafeArea(
+          bottom: false,
+          child: IndexedStack(
+            index: safeIndex,
+            children: [
+              HomeScreen(
+                onOpenNotifications: () async {
+                  ref.read(bottomNavIndexProvider.notifier).state = 2;
+                  await markNotificationsAsSeen(ref);
+                },
+              ),
+              const ChildrenScreen(),
+              const NotificationsScreen(),
+              const AccountScreen(),
+            ],
+          ),
         ),
-      ),
-      bottomNavigationBar: CustomBottomNavbar(
-        currentIndex: safeIndex,
-        notificationBadge: badge,
-        onTap: (value) async {
-          ref.read(bottomNavIndexProvider.notifier).state = value;
-          if (value == 2) {
-            await markNotificationsAsSeen(ref);
-          }
-        },
+        bottomNavigationBar: CustomBottomNavbar(
+          currentIndex: safeIndex,
+          notificationBadge: badge,
+          onTap: (value) async {
+            ref.read(bottomNavIndexProvider.notifier).state = value;
+            if (value == 2) {
+              await markNotificationsAsSeen(ref);
+            }
+          },
+        ),
       ),
     );
   }
