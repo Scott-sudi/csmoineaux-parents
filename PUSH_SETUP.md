@@ -39,4 +39,4 @@ Seuls les push « téléphone éteint / app tuée » manquent.
 ## Bibliothèques déjà ajoutées
 - `flutter_local_notifications` (son app ouverte)
 - `firebase_core` + `firebase_messaging` (push distant)
-- Backend : envoi FCM avec `"sound": "default"` + canal `kalunga_parents_alerts`
+- Backend : envoi FCM avec `"sound": "default"` + canal `kalunga_parents_alerts_v2`

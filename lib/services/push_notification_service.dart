@@ -11,8 +11,9 @@ import '../providers/dependency_providers.dart';
 import '../providers/home_providers.dart';
 import '../providers/notifications_providers.dart';
 
-/// Canal Android — doit matcher `android_channel_id` côté FCM serveur.
-const kParentsAlertChannelId = 'kalunga_parents_alerts';
+/// Canal Android — nouveau id pour forcer son + vibration
+/// (Android verrouille les réglages d’un canal après création).
+const kParentsAlertChannelId = 'kalunga_parents_alerts_v2';
 const kParentsAlertChannelName = 'Institut Kalunga';
 
 /// Handler push reçu app en arrière-plan / tuée (isolate dédié).
@@ -61,6 +62,8 @@ class PushNotificationService {
         importance: Importance.max,
         playSound: true,
         enableVibration: true,
+        showBadge: true,
+        audioAttributesUsage: AudioAttributesUsage.notificationRingtone,
       ),
     );
     await androidPlugin?.requestNotificationsPermission();
@@ -129,6 +132,9 @@ class PushNotificationService {
       playSound: true,
       enableVibration: true,
       category: AndroidNotificationCategory.message,
+      visibility: NotificationVisibility.public,
+      ticker: 'Nouvelle notification Institut Kalunga',
+      audioAttributesUsage: AudioAttributesUsage.notificationRingtone,
     );
     const iosDetails = DarwinNotificationDetails(
       presentAlert: true,

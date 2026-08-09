@@ -25,7 +25,7 @@ class LiveRefreshController extends StateNotifier<int>
   final Ref _ref;
   Timer? _timer;
   ProviderSubscription<AuthSessionState>? _authSub;
-  int? _lastUnread;
+  Set<String>? _knownIds;
 
   void _syncWithAuth(AuthSessionState session) {
     if (session is AuthSessionAuthenticated) {
@@ -33,7 +33,7 @@ class LiveRefreshController extends StateNotifier<int>
       unawaited(refreshNow());
     } else {
       _stop();
-      _lastUnread = null;
+      _knownIds = null;
     }
   }
 
@@ -57,19 +57,30 @@ class LiveRefreshController extends StateNotifier<int>
     state++;
 
     try {
-      final dash = await _ref.read(homeDashboardProvider.future);
-      await _ref.read(parentNotificationsProvider.future);
-      final unread = dash.overview.unreadNotificationsBadge;
-      final prev = _lastUnread;
-      _lastUnread = unread;
+      await _ref.read(homeDashboardProvider.future);
+      final inbox = await _ref.read(parentNotificationsProvider.future);
+      final ids = inbox.items.map((e) => e.id).where((id) => id.isNotEmpty).toSet();
+      final prev = _knownIds;
+      _knownIds = ids;
 
-      if (prev != null && unread > prev) {
-        await _ref.read(pushNotificationServiceProvider).showLocalAlert(
-              title: 'Institut Kalunga',
-              body: unread == 1
-                  ? 'Vous avez une nouvelle notification.'
-                  : 'Vous avez de nouvelles notifications ($unread).',
-            );
+      // Son dès qu’un nouvel item apparaît (même déjà « lu » côté API,
+      // ex. paiement / incident) — pas seulement si le badge augmente.
+      if (prev != null) {
+        final newcomers = ids.difference(prev);
+        if (newcomers.isNotEmpty) {
+          final newest = inbox.items.firstWhere(
+            (e) => newcomers.contains(e.id),
+            orElse: () => inbox.items.first,
+          );
+          await _ref.read(pushNotificationServiceProvider).showLocalAlert(
+                title: newest.title.isNotEmpty
+                    ? newest.title
+                    : 'Institut Kalunga',
+                body: newest.subtitle.isNotEmpty
+                    ? newest.subtitle
+                    : 'Vous avez une nouvelle notification.',
+              );
+        }
       }
     } catch (_) {}
   }

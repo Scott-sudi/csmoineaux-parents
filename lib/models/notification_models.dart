@@ -18,6 +18,7 @@ class ParentNotificationItem extends Equatable {
     this.studentName = '',
     this.source = '',
     this.sourceId = '',
+    this.occurredAt,
   });
 
   final String id;
@@ -31,6 +32,8 @@ class ParentNotificationItem extends Equatable {
   final String studentName;
   final String source;
   final String sourceId;
+  /// Instant réel pour tri (plus récent en haut).
+  final DateTime? occurredAt;
 
   /// UUID métier extrait de `source_id` ou de `id` (`payment:uuid`).
   String get resolvedSourceId {
@@ -117,6 +120,11 @@ class ParentNotificationItem extends Equatable {
       );
 
   factory ParentNotificationItem.fromJson(Map<String, dynamic> json) {
+    DateTime? occurred;
+    final rawOccurred = json['occurred_at']?.toString();
+    if (rawOccurred != null && rawOccurred.isNotEmpty) {
+      occurred = DateTime.tryParse(rawOccurred)?.toLocal();
+    }
     return ParentNotificationItem(
       id: json['id']?.toString() ?? '',
       title: json['title']?.toString() ?? '',
@@ -135,11 +143,12 @@ class ParentNotificationItem extends Equatable {
       studentName: json['student_name']?.toString() ?? '',
       source: json['source']?.toString() ?? '',
       sourceId: json['source_id']?.toString() ?? '',
+      occurredAt: occurred,
     );
   }
 
   @override
-  List<Object?> get props => [id, title, isRead, type, sourceId];
+  List<Object?> get props => [id, title, isRead, type, sourceId, occurredAt];
 }
 
 class ParentNotificationsResult extends Equatable {
@@ -155,16 +164,23 @@ class ParentNotificationsResult extends Equatable {
 
   factory ParentNotificationsResult.fromJson(Map<String, dynamic> json) {
     final raw = json['items'] as List<dynamic>? ?? const [];
+    final items = raw
+        .map(
+          (e) => ParentNotificationItem.fromJson(
+            Map<String, dynamic>.from(e as Map),
+          ),
+        )
+        .toList();
+    // Filet de sécurité : plus récent en haut (jamais par titre).
+    items.sort((a, b) {
+      final aAt = a.occurredAt ?? DateTime.fromMillisecondsSinceEpoch(0);
+      final bAt = b.occurredAt ?? DateTime.fromMillisecondsSinceEpoch(0);
+      return bAt.compareTo(aAt);
+    });
     return ParentNotificationsResult(
       unreadCount: int.tryParse(json['unread_count']?.toString() ?? '') ?? 0,
       totalCount: int.tryParse(json['total_count']?.toString() ?? '') ?? 0,
-      items: raw
-          .map(
-            (e) => ParentNotificationItem.fromJson(
-              Map<String, dynamic>.from(e as Map),
-            ),
-          )
-          .toList(),
+      items: items,
     );
   }
 
