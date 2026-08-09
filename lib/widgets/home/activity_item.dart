@@ -1,10 +1,11 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 
 import '../../constants/app_constants.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/theme/app_theme_colors.dart';
 import '../../models/home_models.dart';
 
-/// Carte d'une activité récente.
+/// Carte d'une activite recente.
 class ActivityItem extends StatelessWidget {
   const ActivityItem({
     super.key,
@@ -31,9 +32,9 @@ class ActivityItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: AppColors.card,
+      color: context.appCard,
       borderRadius: BorderRadius.circular(AppConstants.radiusLarge),
-      elevation: 1,
+      elevation: context.isDarkTheme ? 0 : 1,
       shadowColor: AppColors.shadow,
       child: InkWell(
         onTap: onTap,
@@ -50,11 +51,7 @@ class ActivityItem extends StatelessWidget {
                   color: _iconBackground,
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: Icon(
-                  activity.icon,
-                  color: Colors.white,
-                  size: 22,
-                ),
+                child: Icon(activity.icon, color: Colors.white, size: 22),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -63,8 +60,8 @@ class ActivityItem extends StatelessWidget {
                   children: [
                     Text(
                       activity.title,
-                      style: const TextStyle(
-                        color: AppColors.textPrimary,
+                      style: TextStyle(
+                        color: context.appTextPrimary,
                         fontSize: 14,
                         fontWeight: FontWeight.w700,
                       ),
@@ -72,8 +69,8 @@ class ActivityItem extends StatelessWidget {
                     const SizedBox(height: 4),
                     Text(
                       activity.subtitle,
-                      style: const TextStyle(
-                        color: AppColors.textSecondary,
+                      style: TextStyle(
+                        color: context.appTextSecondary,
                         fontSize: 12.5,
                         fontWeight: FontWeight.w400,
                       ),
@@ -82,7 +79,7 @@ class ActivityItem extends StatelessWidget {
                     Text(
                       activity.timestampLabel,
                       style: TextStyle(
-                        color: AppColors.textSecondary.withOpacity(0.85),
+                        color: context.appTextSecondary.withOpacity(0.85),
                         fontSize: 11.5,
                       ),
                     ),

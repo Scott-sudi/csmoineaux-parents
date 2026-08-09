@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/theme/app_theme_colors.dart';
 import '../../providers/home_providers.dart';
 import '../../widgets/navigation/custom_bottom_navbar.dart';
 import '../about/about_screen.dart';
@@ -9,7 +10,7 @@ import '../children/children_screen.dart';
 import '../home/home_screen.dart';
 import '../notifications/notifications_screen.dart';
 
-/// Coquille principale : Accueil + 4 onglets placeholders navigables.
+/// Coquille principale : Accueil + onglets navigables.
 class MainShell extends ConsumerWidget {
   const MainShell({super.key});
 
@@ -23,7 +24,7 @@ class MainShell extends ConsumerWidget {
     );
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: context.appBackground,
       body: SafeArea(
         bottom: false,
         child: IndexedStack(

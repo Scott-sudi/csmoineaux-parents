@@ -6,11 +6,13 @@ import '../repositories/auth_repository.dart';
 import '../repositories/child_modules_repository.dart';
 import '../repositories/children_repository.dart';
 import '../repositories/home_repository.dart';
+import '../repositories/notifications_repository.dart';
 import '../services/auth_service.dart';
 import '../services/child_modules_service.dart';
 import '../services/children_service.dart';
 import '../services/home_service.dart';
 import '../services/login_service.dart';
+import '../services/notifications_service.dart';
 import '../services/phone_auth_service.dart';
 import '../services/user_service.dart';
 
@@ -99,6 +101,17 @@ final childModulesServiceProvider = Provider<ChildModulesService>((ref) {
 final childModulesRepositoryProvider = Provider<ChildModulesRepository>((ref) {
   return ChildModulesRepository(
     modulesService: ref.watch(childModulesServiceProvider),
+    authService: ref.watch(authServiceProvider),
+  );
+});
+
+final notificationsServiceProvider = Provider<NotificationsService>((ref) {
+  return NotificationsService(api: ref.watch(apiServiceProvider));
+});
+
+final notificationsRepositoryProvider = Provider<NotificationsRepository>((ref) {
+  return NotificationsRepository(
+    notificationsService: ref.watch(notificationsServiceProvider),
     authService: ref.watch(authServiceProvider),
   );
 });

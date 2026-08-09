@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../constants/app_constants.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/theme/app_theme_colors.dart';
 import '../../models/home_models.dart';
 
 /// Grande carte verte « Vue d'ensemble » (maquette Accueil).
@@ -9,9 +10,19 @@ class OverviewCard extends StatelessWidget {
   const OverviewCard({
     super.key,
     required this.overview,
+    required this.overviewTitle,
+    required this.childrenLabel,
+    required this.notificationsLabel,
+    required this.averageLabel,
+    required this.balanceLabel,
   });
 
   final HomeOverview overview;
+  final String overviewTitle;
+  final String childrenLabel;
+  final String notificationsLabel;
+  final String averageLabel;
+  final String balanceLabel;
 
   @override
   Widget build(BuildContext context) {
@@ -32,9 +43,9 @@ class OverviewCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            "Vue d'ensemble",
-            style: TextStyle(
+          Text(
+            overviewTitle,
+            style: const TextStyle(
               color: AppColors.textOnPrimary,
               fontSize: 18,
               fontWeight: FontWeight.w700,
@@ -56,7 +67,7 @@ class OverviewCard extends StatelessWidget {
                 child: _StatTile(
                   icon: Icons.people_outline,
                   value: '${overview.childrenCount}',
-                  label: 'Enfants',
+                  label: childrenLabel,
                 ),
               ),
               const SizedBox(width: 10),
@@ -64,7 +75,7 @@ class OverviewCard extends StatelessWidget {
                 child: _StatTile(
                   icon: Icons.notifications_none_outlined,
                   value: '${overview.notificationsCount}',
-                  label: 'Notifications',
+                  label: notificationsLabel,
                 ),
               ),
             ],
@@ -78,7 +89,7 @@ class OverviewCard extends StatelessWidget {
                   value: overview.generalAveragePercent == null
                       ? '—'
                       : '${overview.generalAveragePercent}%',
-                  label: 'Moyenne générale',
+                  label: averageLabel,
                 ),
               ),
               const SizedBox(width: 10),
@@ -86,7 +97,7 @@ class OverviewCard extends StatelessWidget {
                 child: _StatTile(
                   icon: Icons.account_balance_wallet_outlined,
                   value: overview.unpaidBalanceLabel,
-                  label: 'Solde impayé',
+                  label: balanceLabel,
                 ),
               ),
             ],
@@ -113,19 +124,19 @@ class _StatTile extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
       decoration: BoxDecoration(
-        color: AppColors.card,
+        color: context.appCard,
         borderRadius: BorderRadius.circular(AppConstants.radiusMedium),
-        boxShadow: const [
+        boxShadow: [
           BoxShadow(
             color: AppColors.shadow,
-            blurRadius: 4,
-            offset: Offset(0, 1),
+            blurRadius: context.isDarkTheme ? 0 : 4,
+            offset: const Offset(0, 1),
           ),
         ],
       ),
       child: Row(
         children: [
-          Icon(icon, color: AppColors.primaryLight, size: 22),
+          Icon(icon, color: context.appPrimaryLight, size: 22),
           const SizedBox(width: 10),
           Expanded(
             child: Column(
@@ -135,8 +146,8 @@ class _StatTile extends StatelessWidget {
                   value,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    color: AppColors.textPrimary,
+                  style: TextStyle(
+                    color: context.appTextPrimary,
                     fontSize: 16,
                     fontWeight: FontWeight.w700,
                   ),
@@ -146,8 +157,8 @@ class _StatTile extends StatelessWidget {
                   label,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    color: AppColors.textSecondary,
+                  style: TextStyle(
+                    color: context.appTextSecondary,
                     fontSize: 11,
                     fontWeight: FontWeight.w500,
                   ),

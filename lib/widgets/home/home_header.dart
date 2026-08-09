@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../core/theme/app_colors.dart';
+import '../../core/theme/app_theme_colors.dart';
 
 /// En-tête Accueil : salutation + badge notifications.
 class HomeHeader extends StatelessWidget {
@@ -8,11 +9,17 @@ class HomeHeader extends StatelessWidget {
     super.key,
     required this.parentName,
     required this.notificationCount,
+    required this.helloLabel,
+    required this.welcomeLabel,
+    required this.notificationsTooltip,
     this.onNotificationTap,
   });
 
   final String parentName;
   final int notificationCount;
+  final String helloLabel;
+  final String welcomeLabel;
+  final String notificationsTooltip;
   final VoidCallback? onNotificationTap;
 
   @override
@@ -28,15 +35,15 @@ class HomeHeader extends StatelessWidget {
               children: [
                 RichText(
                   text: TextSpan(
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 20,
-                      color: AppColors.textPrimary,
+                      color: context.appTextPrimary,
                       height: 1.25,
                     ),
                     children: [
-                      const TextSpan(
-                        text: 'Bonjour,\n',
-                        style: TextStyle(fontWeight: FontWeight.w400),
+                      TextSpan(
+                        text: '$helloLabel\n',
+                        style: const TextStyle(fontWeight: FontWeight.w400),
                       ),
                       TextSpan(
                         text: '$parentName 👋',
@@ -46,10 +53,10 @@ class HomeHeader extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 4),
-                const Text(
-                  'Bienvenue à Institut Kalunga',
+                Text(
+                  welcomeLabel,
                   style: TextStyle(
-                    color: AppColors.textSecondary,
+                    color: context.appTextSecondary,
                     fontSize: 13,
                     fontWeight: FontWeight.w400,
                   ),
@@ -59,7 +66,7 @@ class HomeHeader extends StatelessWidget {
           ),
           IconButton(
             onPressed: onNotificationTap,
-            tooltip: 'Notifications',
+            tooltip: notificationsTooltip,
             icon: Badge(
               isLabelVisible: notificationCount > 0,
               backgroundColor: AppColors.badge,
@@ -71,9 +78,9 @@ class HomeHeader extends StatelessWidget {
                   fontWeight: FontWeight.w700,
                 ),
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.notifications_none_outlined,
-                color: AppColors.textPrimary,
+                color: context.appTextPrimary,
                 size: 28,
               ),
             ),

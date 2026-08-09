@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/theme/app_colors.dart';
+import '../../core/theme/app_theme_colors.dart';
+import '../../providers/settings_providers.dart';
 
 /// Barre de navigation inférieure à 5 onglets (maquette).
-class CustomBottomNavbar extends StatelessWidget {
+class CustomBottomNavbar extends ConsumerWidget {
   const CustomBottomNavbar({
     super.key,
     required this.currentIndex,
@@ -16,13 +19,18 @@ class CustomBottomNavbar extends StatelessWidget {
   final int notificationBadge;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final s = ref.watch(appStringsProvider);
+    final card = context.appCard;
+    final selected = context.appPrimary;
+    final unselected = context.appTextSecondary;
+
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.card,
+        color: card,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.06),
+            color: Colors.black.withOpacity(context.isDarkTheme ? 0.35 : 0.06),
             blurRadius: 10,
             offset: const Offset(0, -2),
           ),
@@ -34,24 +42,24 @@ class CustomBottomNavbar extends StatelessWidget {
           currentIndex: currentIndex,
           onTap: onTap,
           type: BottomNavigationBarType.fixed,
-          backgroundColor: AppColors.card,
+          backgroundColor: card,
           elevation: 0,
-          selectedItemColor: AppColors.primary,
-          unselectedItemColor: AppColors.textSecondary,
+          selectedItemColor: selected,
+          unselectedItemColor: unselected,
           selectedFontSize: 11,
           unselectedFontSize: 10,
           selectedLabelStyle: const TextStyle(fontWeight: FontWeight.w600),
           unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w500),
           items: [
-            const BottomNavigationBarItem(
-              icon: Icon(Icons.home_outlined),
-              activeIcon: Icon(Icons.home),
-              label: 'Accueil',
+            BottomNavigationBarItem(
+              icon: const Icon(Icons.home_outlined),
+              activeIcon: const Icon(Icons.home),
+              label: s.navHome,
             ),
-            const BottomNavigationBarItem(
-              icon: Icon(Icons.people_outline),
-              activeIcon: Icon(Icons.people),
-              label: 'Mes Enfants',
+            BottomNavigationBarItem(
+              icon: const Icon(Icons.people_outline),
+              activeIcon: const Icon(Icons.people),
+              label: s.navChildren,
             ),
             BottomNavigationBarItem(
               icon: _NavBadgeIcon(
@@ -64,17 +72,17 @@ class CustomBottomNavbar extends StatelessWidget {
                 count: notificationBadge,
                 selected: true,
               ),
-              label: 'Notifications',
+              label: s.navNotifications,
             ),
-            const BottomNavigationBarItem(
-              icon: Icon(Icons.info_outline),
-              activeIcon: Icon(Icons.info),
-              label: 'À propos',
+            BottomNavigationBarItem(
+              icon: const Icon(Icons.info_outline),
+              activeIcon: const Icon(Icons.info),
+              label: s.navAbout,
             ),
-            const BottomNavigationBarItem(
-              icon: Icon(Icons.person_outline),
-              activeIcon: Icon(Icons.person),
-              label: 'Mon Compte',
+            BottomNavigationBarItem(
+              icon: const Icon(Icons.person_outline),
+              activeIcon: const Icon(Icons.person),
+              label: s.navAccount,
             ),
           ],
         ),
@@ -105,7 +113,7 @@ class _NavBadgeIcon extends StatelessWidget {
       ),
       child: Icon(
         icon,
-        color: selected ? AppColors.primary : AppColors.textSecondary,
+        color: selected ? context.appPrimary : context.appTextSecondary,
       ),
     );
   }

@@ -8,6 +8,7 @@ class ParentIdentity extends Equatable {
     required this.guardianPublicId,
     required this.displayName,
     required this.phone,
+    this.email = '',
     this.nextAuthStep = AuthStep.password,
     this.availableMethods = const [
       AuthMethod.password,
@@ -20,6 +21,7 @@ class ParentIdentity extends Equatable {
   final String guardianPublicId;
   final String displayName;
   final String phone;
+  final String email;
   final AuthStep nextAuthStep;
   final List<AuthMethod> availableMethods;
 
@@ -48,6 +50,7 @@ class ParentIdentity extends Equatable {
       guardianPublicId: json['guardian_public_id']?.toString() ?? '',
       displayName: json['display_name']?.toString() ?? '',
       phone: phone,
+      email: json['email']?.toString() ?? '',
       nextAuthStep: AuthStepX.fromApi(json['next_auth_step']?.toString()),
       availableMethods: methods.isEmpty
           ? const [
@@ -64,6 +67,7 @@ class ParentIdentity extends Equatable {
         'guardian_public_id': guardianPublicId,
         'display_name': displayName,
         'phone': phone,
+        'email': email,
         'next_auth_step': nextAuthStep.apiValue,
       };
 
@@ -72,6 +76,7 @@ class ParentIdentity extends Equatable {
       guardianPublicId: map['guardian_public_id'] ?? '',
       displayName: map['display_name'] ?? '',
       phone: map['phone'] ?? '',
+      email: map['email'] ?? '',
       nextAuthStep: AuthStepX.fromApi(map['next_auth_step']),
     );
   }
@@ -80,6 +85,7 @@ class ParentIdentity extends Equatable {
     String? guardianPublicId,
     String? displayName,
     String? phone,
+    String? email,
     AuthStep? nextAuthStep,
     List<AuthMethod>? availableMethods,
   }) {
@@ -87,13 +93,14 @@ class ParentIdentity extends Equatable {
       guardianPublicId: guardianPublicId ?? this.guardianPublicId,
       displayName: displayName ?? this.displayName,
       phone: phone ?? this.phone,
+      email: email ?? this.email,
       nextAuthStep: nextAuthStep ?? this.nextAuthStep,
       availableMethods: availableMethods ?? this.availableMethods,
     );
   }
 
   @override
-  List<Object?> get props => [guardianPublicId, displayName, phone];
+  List<Object?> get props => [guardianPublicId, displayName, phone, email];
 }
 
 /// Résultat de la vérification téléphone (sans lever d'exception métier).

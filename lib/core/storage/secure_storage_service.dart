@@ -11,6 +11,7 @@ abstract final class ParentSessionKeys {
   static const guardianId = 'kalunga_parent_guardian_id';
   static const displayName = 'kalunga_parent_display_name';
   static const phone = 'kalunga_parent_phone';
+  static const email = 'kalunga_parent_email';
   static const authStep = 'kalunga_parent_auth_step';
   static const phoneVerified = 'kalunga_parent_phone_verified';
 }
@@ -149,6 +150,10 @@ class SecureStorageService {
       value: identity.phone,
     );
     await _store.write(
+      key: ParentSessionKeys.email,
+      value: identity.email,
+    );
+    await _store.write(
       key: ParentSessionKeys.authStep,
       value: AuthStep.completed.apiValue,
     );
@@ -160,11 +165,13 @@ class SecureStorageService {
     final id = await _store.read(key: ParentSessionKeys.guardianId);
     final name = await _store.read(key: ParentSessionKeys.displayName);
     final phone = await _store.read(key: ParentSessionKeys.phone);
+    final email = await _store.read(key: ParentSessionKeys.email);
     if (id == null || id.isEmpty) return null;
     return ParentIdentity(
       guardianPublicId: id,
       displayName: name ?? '',
       phone: phone ?? '',
+      email: email ?? '',
       nextAuthStep: AuthStep.completed,
     );
   }
@@ -178,6 +185,7 @@ class SecureStorageService {
     await _store.delete(key: ParentSessionKeys.guardianId);
     await _store.delete(key: ParentSessionKeys.displayName);
     await _store.delete(key: ParentSessionKeys.phone);
+    await _store.delete(key: ParentSessionKeys.email);
     await _store.delete(key: ParentSessionKeys.authStep);
     await _store.delete(key: ParentSessionKeys.phoneVerified);
   }

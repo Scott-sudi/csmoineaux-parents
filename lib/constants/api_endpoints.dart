@@ -18,7 +18,9 @@ abstract final class ApiEndpoints {
   // Réservés parents (à brancher progressivement)
   static const String parentHomeOverview = 'parents/home/overview/';
   static const String parentRecentActivities = 'parents/home/activities/';
-  static const String notifications = 'notifications/';
+  static const String parentNotifications = 'parents/notifications/';
+  static const String notifications = 'parents/notifications/';
+  static const String parentProfile = 'parents/profile/';
   static const String children = 'parents/children/';
 
   static String childAttendance(String studentId) =>

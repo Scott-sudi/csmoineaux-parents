@@ -3,9 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../constants/app_constants.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/theme/app_theme_colors.dart';
 import '../../models/home_models.dart';
 import '../../providers/auth_providers.dart';
 import '../../providers/home_providers.dart';
+import '../../providers/settings_providers.dart';
 import '../../widgets/home/activity_item.dart';
 import '../../widgets/home/home_header.dart';
 import '../../widgets/home/overview_card.dart';
@@ -23,28 +25,40 @@ class HomeScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final asyncDashboard = ref.watch(homeDashboardProvider);
     final session = ref.watch(authSessionProvider);
+    final s = ref.watch(appStringsProvider);
     final sessionName = switch (session) {
       AuthSessionAuthenticated(:final identity) => identity.displayName.trim(),
       _ => '',
     };
 
     return ColoredBox(
-      color: AppColors.background,
+      color: context.appBackground,
       child: asyncDashboard.when(
-        loading: () => const Center(
-          child: CircularProgressIndicator(color: AppColors.primary),
+        loading: () => Center(
+          child: CircularProgressIndicator(color: context.appPrimary),
         ),
         error: (error, _) => _ErrorView(
           message: error.toString(),
+          retryLabel: s.retry,
           onRetry: () => ref.invalidate(homeDashboardProvider),
         ),
         data: (dashboard) => _HomeBody(
           dashboard: dashboard,
-          // Toujours le même nom que « Mon Compte » (session live).
           greetingName: sessionName.isNotEmpty
               ? sessionName
               : dashboard.parentDisplayName,
           onOpenNotifications: onOpenNotifications,
+          helloLabel: s.hello,
+          welcomeLabel: s.welcomeSchool,
+          notificationsTooltip: s.navNotifications,
+          overviewTitle: s.overview,
+          childrenLabel: s.children,
+          notificationsLabel: s.navNotifications,
+          averageLabel: s.generalAverage,
+          balanceLabel: s.unpaidBalance,
+          recentTitle: s.recentActivities,
+          seeAllLabel: s.seeAll,
+          emptyActivities: s.noRecentActivity,
           onRefresh: () async {
             ref.invalidate(homeDashboardProvider);
             await ref.read(homeDashboardProvider.future);
@@ -60,6 +74,17 @@ class _HomeBody extends StatelessWidget {
     required this.dashboard,
     required this.greetingName,
     required this.onRefresh,
+    required this.helloLabel,
+    required this.welcomeLabel,
+    required this.notificationsTooltip,
+    required this.overviewTitle,
+    required this.childrenLabel,
+    required this.notificationsLabel,
+    required this.averageLabel,
+    required this.balanceLabel,
+    required this.recentTitle,
+    required this.seeAllLabel,
+    required this.emptyActivities,
     this.onOpenNotifications,
   });
 
@@ -67,6 +92,17 @@ class _HomeBody extends StatelessWidget {
   final String greetingName;
   final Future<void> Function() onRefresh;
   final VoidCallback? onOpenNotifications;
+  final String helloLabel;
+  final String welcomeLabel;
+  final String notificationsTooltip;
+  final String overviewTitle;
+  final String childrenLabel;
+  final String notificationsLabel;
+  final String averageLabel;
+  final String balanceLabel;
+  final String recentTitle;
+  final String seeAllLabel;
+  final String emptyActivities;
 
   @override
   Widget build(BuildContext context) {
@@ -81,6 +117,9 @@ class _HomeBody extends StatelessWidget {
               parentName: greetingName,
               notificationCount: dashboard.overview.unreadNotificationsBadge,
               onNotificationTap: onOpenNotifications,
+              helloLabel: helloLabel,
+              welcomeLabel: welcomeLabel,
+              notificationsTooltip: notificationsTooltip,
             ),
           ),
           SliverPadding(
@@ -91,7 +130,14 @@ class _HomeBody extends StatelessWidget {
               8,
             ),
             sliver: SliverToBoxAdapter(
-              child: OverviewCard(overview: dashboard.overview),
+              child: OverviewCard(
+                overview: dashboard.overview,
+                overviewTitle: overviewTitle,
+                childrenLabel: childrenLabel,
+                notificationsLabel: notificationsLabel,
+                averageLabel: averageLabel,
+                balanceLabel: balanceLabel,
+              ),
             ),
           ),
           const SliverToBoxAdapter(child: SizedBox(height: 8)),
@@ -102,35 +148,27 @@ class _HomeBody extends StatelessWidget {
             sliver: SliverToBoxAdapter(
               child: Row(
                 children: [
-                  const Expanded(
+                  Expanded(
                     child: Text(
-                      'Activités récentes',
+                      recentTitle,
                       style: TextStyle(
-                        color: AppColors.textPrimary,
+                        color: context.appTextPrimary,
                         fontSize: 16,
                         fontWeight: FontWeight.w700,
                       ),
                     ),
                   ),
                   TextButton(
-                    onPressed: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text(
-                            'Liste complète des activités — à venir.',
-                          ),
-                        ),
-                      );
-                    },
+                    onPressed: onOpenNotifications,
                     style: TextButton.styleFrom(
-                      foregroundColor: AppColors.primaryLight,
+                      foregroundColor: context.appPrimaryLight,
                       padding: EdgeInsets.zero,
                       minimumSize: const Size(0, 36),
                       tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     ),
-                    child: const Text(
-                      'Voir tout',
-                      style: TextStyle(
+                    child: Text(
+                      seeAllLabel,
+                      style: const TextStyle(
                         fontWeight: FontWeight.w600,
                         fontSize: 13,
                       ),
@@ -142,8 +180,8 @@ class _HomeBody extends StatelessWidget {
           ),
           const SliverToBoxAdapter(child: SizedBox(height: 8)),
           if (dashboard.activities.isEmpty)
-            const SliverPadding(
-              padding: EdgeInsets.fromLTRB(
+            SliverPadding(
+              padding: const EdgeInsets.fromLTRB(
                 AppConstants.pagePadding,
                 0,
                 AppConstants.pagePadding,
@@ -151,11 +189,11 @@ class _HomeBody extends StatelessWidget {
               ),
               sliver: SliverToBoxAdapter(
                 child: Padding(
-                  padding: EdgeInsets.symmetric(vertical: 12),
+                  padding: const EdgeInsets.symmetric(vertical: 12),
                   child: Text(
-                    'Aucune activité récente pour le moment.',
+                    emptyActivities,
                     style: TextStyle(
-                      color: AppColors.textSecondary,
+                      color: context.appTextSecondary,
                       fontSize: 13,
                     ),
                   ),
@@ -171,7 +209,9 @@ class _HomeBody extends StatelessWidget {
                 24,
               ),
               sliver: SliverList.separated(
-                itemCount: dashboard.activities.length,
+                itemCount: dashboard.activities.length > 3
+                    ? 3
+                    : dashboard.activities.length,
                 separatorBuilder: (_, __) => const SizedBox(height: 10),
                 itemBuilder: (context, index) {
                   return ActivityItem(activity: dashboard.activities[index]);
@@ -187,10 +227,12 @@ class _HomeBody extends StatelessWidget {
 class _ErrorView extends StatelessWidget {
   const _ErrorView({
     required this.message,
+    required this.retryLabel,
     required this.onRetry,
   });
 
   final String message;
+  final String retryLabel;
   final VoidCallback onRetry;
 
   @override
@@ -201,17 +243,17 @@ class _ErrorView extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.error_outline, color: AppColors.primary, size: 40),
+            Icon(Icons.error_outline, color: context.appPrimary, size: 40),
             const SizedBox(height: 12),
             Text(
               message,
               textAlign: TextAlign.center,
-              style: const TextStyle(color: AppColors.textSecondary),
+              style: TextStyle(color: context.appTextSecondary),
             ),
             const SizedBox(height: 16),
             ElevatedButton(
               onPressed: onRetry,
-              child: const Text('Réessayer'),
+              child: Text(retryLabel),
             ),
           ],
         ),
