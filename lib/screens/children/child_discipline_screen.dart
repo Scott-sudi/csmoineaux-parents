@@ -255,7 +255,7 @@ class _DossierPhoto extends StatelessWidget {
                 errorBuilder: (_, __, ___) => fallback,
                 loadingBuilder: (context, childWidget, progress) {
                   if (progress == null) return childWidget;
-                  return const SizedBox(
+                  return SizedBox(
                     width: 22,
                     height: 22,
                     child: CircularProgressIndicator(

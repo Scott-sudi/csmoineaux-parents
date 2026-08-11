@@ -85,7 +85,7 @@ class _CardBody extends StatelessWidget {
                 errorBuilder: (_, __, ___) => _FlutterIdCard(card: card),
                 loadingBuilder: (context, child, progress) {
                   if (progress == null) return child;
-                  return const ColoredBox(
+                  return ColoredBox(
                     color: Colors.white,
                     child: Center(
                       child: CircularProgressIndicator(
