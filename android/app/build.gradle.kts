@@ -6,7 +6,7 @@ plugins {
 
 android {
     namespace = "net.institutkalunga.parents"
-    compileSdk = flutter.compileSdkVersion
+    compileSdk = 36
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
@@ -18,7 +18,7 @@ android {
     defaultConfig {
         applicationId = "net.institutkalunga.parents"
         minSdk = flutter.minSdkVersion
-        targetSdk = flutter.targetSdkVersion
+        targetSdk = 35
         versionCode = flutter.versionCode
         versionName = flutter.versionName
     }

@@ -1,20 +1,24 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../core/theme/app_colors.dart';
 import '../services/app_permissions_service.dart';
+import '../services/push_notification_service.dart';
 
-/// Au premier lancement : explique puis demande notifications, caméra, fichiers.
-class StartupPermissionsGate extends StatefulWidget {
+/// Au premier lancement : autorisations + enregistrement du canal Android.
+class StartupPermissionsGate extends ConsumerStatefulWidget {
   const StartupPermissionsGate({super.key, required this.child});
 
   final Widget child;
 
   @override
-  State<StartupPermissionsGate> createState() => _StartupPermissionsGateState();
+  ConsumerState<StartupPermissionsGate> createState() =>
+      _StartupPermissionsGateState();
 }
 
-class _StartupPermissionsGateState extends State<StartupPermissionsGate> {
+class _StartupPermissionsGateState
+    extends ConsumerState<StartupPermissionsGate> {
   bool _ready = kIsWeb;
 
   @override
@@ -55,6 +59,12 @@ class _StartupPermissionsGateState extends State<StartupPermissionsGate> {
       if (!mounted) return;
       await AppPermissionsService.requestStartupPermissions();
     }
+
+    // Crée le canal Android dès le démarrage (sinon Réglages dit
+    // « aucune notification publiée » et pas de son système).
+    try {
+      await ref.read(pushNotificationServiceProvider).init();
+    } catch (_) {}
 
     if (mounted) setState(() => _ready = true);
   }
