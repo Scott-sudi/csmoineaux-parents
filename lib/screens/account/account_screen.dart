@@ -167,27 +167,29 @@ class AccountScreen extends ConsumerWidget {
                         textPrimary: textPrimary,
                         textSecondary: textSecondary,
                         onTap: () async {
+                          final push =
+                              ref.read(pushNotificationServiceProvider);
                           ref.read(inAppAlertProvider.notifier).state =
                               const InAppAlert(
                             title: 'Test Institut Kalunga',
                             body: 'Si vous entendez ceci, le son fonctionne.',
                           );
-                          await ref
-                              .read(pushNotificationServiceProvider)
-                              .showLocalAlert(
-                                title: 'Test Institut Kalunga',
-                                body:
-                                    'Si vous entendez ceci, le son fonctionne.',
-                              );
-                          if (context.mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text(
-                                  'Alerte de test envoyée — écoutez le son.',
-                                ),
-                              ),
-                            );
-                          }
+                          final enabled =
+                              await push.areSystemNotificationsEnabled();
+                          final posted = await push.showLocalAlert(
+                            title: 'Test Institut Kalunga',
+                            body:
+                                'Si vous entendez ceci, le son fonctionne.',
+                          );
+                          if (!context.mounted) return;
+                          final msg = !enabled
+                              ? 'Notifications système DÉSACTIVÉES pour cette app. Active-les dans Réglages Android.'
+                              : posted
+                                  ? 'Notification système publiée. Tu dois entendre le son et voir la cloche dans la barre.'
+                                  : 'Échec publication système. Réautorise les notifications pour Institut Kalunga.';
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text(msg), duration: const Duration(seconds: 5)),
+                          );
                         },
                       ),
                       _SettingsRow(

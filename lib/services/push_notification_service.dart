@@ -6,6 +6,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../constants/api_endpoints.dart';
@@ -15,9 +16,10 @@ import '../providers/dependency_providers.dart';
 import '../providers/home_providers.dart';
 import '../providers/notifications_providers.dart';
 
-/// Canal Android — nouveau id = nouveau réglage son (Android verrouille les canaux).
-const kParentsAlertChannelId = 'kalunga_parents_alerts_v5';
+/// Canal Android — doit matcher MainActivity.kt (NOTIF_CHANNEL_ID).
+const kParentsAlertChannelId = 'kalunga_parents_alerts_v6';
 const kParentsAlertChannelName = 'Alertes Institut Kalunga';
+const _kNativeAlertsChannel = 'net.institutkalunga.parents/alerts';
 
 class InAppAlert {
   const InAppAlert({required this.title, required this.body});
@@ -206,29 +208,60 @@ class PushNotificationService {
     );
   }
 
-  /// Vraie notif Android (barre + son) + bannière in-app + tonalité.
-  Future<void> showLocalAlert({
+  /// Vraie notif Android (barre + son) + bannière in-app.
+  /// Retourne `true` si Android a bien publié la notification système.
+  Future<bool> showLocalAlert({
     required String title,
     required String body,
     void Function(InAppAlert alert)? onInApp,
   }) async {
-    if (kIsWeb) return;
+    if (kIsWeb) return false;
     if (!_ready) await init();
 
     onInApp?.call(InAppAlert(title: title, body: body));
-    await _playAlertTone();
 
+    // 1) Chemin natif Android (le plus fiable) — sonnerie système + notify().
+    if (defaultTargetPlatform == TargetPlatform.android) {
+      try {
+        await Permission.notification.request();
+        const channel = MethodChannel(_kNativeAlertsChannel);
+        await channel.invokeMethod<void>('ensureChannel');
+        final posted = await channel.invokeMethod<bool>('showAlert', {
+          'title': title,
+          'body': body,
+        });
+        if (posted == true) return true;
+      } catch (_) {}
+    }
+
+    // 2) Repli Flutter plugins.
+    await _playAlertTone();
     try {
       await _postSystemNotification(title: title, body: body);
+      return true;
     } catch (_) {
-      // Repli icône launcher si drawable custom échoue.
       try {
         await _postSystemNotification(
           title: title,
           body: body,
           icon: '@mipmap/ic_launcher',
         );
-      } catch (_) {}
+        return true;
+      } catch (_) {
+        return false;
+      }
+    }
+  }
+
+  Future<bool> areSystemNotificationsEnabled() async {
+    if (kIsWeb) return false;
+    if (defaultTargetPlatform != TargetPlatform.android) return true;
+    try {
+      const channel = MethodChannel(_kNativeAlertsChannel);
+      return await channel.invokeMethod<bool>('areNotificationsEnabled') ??
+          false;
+    } catch (_) {
+      return false;
     }
   }
 
