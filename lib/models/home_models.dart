@@ -62,6 +62,9 @@ class RecentActivity extends Equatable {
     required this.subtitle,
     required this.timestampLabel,
     required this.type,
+    this.body = '',
+    this.source = '',
+    this.sourceId = '',
   });
 
   final String id;
@@ -69,6 +72,9 @@ class RecentActivity extends Equatable {
   final String subtitle;
   final String timestampLabel;
   final ActivityType type;
+  final String body;
+  final String source;
+  final String sourceId;
 
   IconData get icon {
     switch (type) {
@@ -90,6 +96,9 @@ class RecentActivity extends Equatable {
       subtitle: json['subtitle']?.toString() ?? '',
       timestampLabel: json['timestamp_label']?.toString() ?? '',
       type: _parseType(json['type']?.toString()),
+      body: json['body']?.toString() ?? '',
+      source: json['source']?.toString() ?? '',
+      sourceId: json['source_id']?.toString() ?? '',
     );
   }
 
@@ -107,7 +116,8 @@ class RecentActivity extends Equatable {
   }
 
   @override
-  List<Object?> get props => [id, title, subtitle, timestampLabel, type];
+  List<Object?> get props =>
+      [id, title, subtitle, timestampLabel, type, body, source, sourceId];
 }
 
 /// Agrégat Accueil (parent connecté + vue d'ensemble + activités).

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../core/theme/app_colors.dart';
+import '../../core/theme/app_theme_colors.dart';
 import '../../models/child_models.dart';
 
 /// Détail enfant — placeholder jusqu'au module suivant.
@@ -15,9 +15,9 @@ class ChildDetailScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: context.appBackground,
       appBar: AppBar(
-        backgroundColor: AppColors.primary,
+        backgroundColor: context.appPrimary,
         foregroundColor: Colors.white,
         title: Text(child.displayName),
       ),
@@ -28,33 +28,33 @@ class ChildDetailScreen extends StatelessWidget {
           children: [
             Text(
               child.displayName,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 22,
                 fontWeight: FontWeight.w700,
-                color: AppColors.textPrimary,
+                color: context.appTextPrimary,
               ),
             ),
             const SizedBox(height: 8),
             Text(
               child.classLabel,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 15,
-                color: AppColors.textSecondary,
+                color: context.appTextSecondary,
               ),
             ),
             const SizedBox(height: 4),
             Text(
               'Matricule: ${child.matricule}',
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 14,
-                color: AppColors.textSecondary,
+                color: context.appTextSecondary,
               ),
             ),
             const SizedBox(height: 24),
-            const Text(
+            Text(
               'Le dossier complet de l’élève sera développé dans un prochain module.',
               style: TextStyle(
-                color: AppColors.textSecondary,
+                color: context.appTextSecondary,
                 height: 1.4,
               ),
             ),

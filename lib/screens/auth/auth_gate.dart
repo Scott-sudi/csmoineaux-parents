@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../core/theme/app_colors.dart';
+import '../../core/theme/app_theme_colors.dart';
 import '../../providers/auth_providers.dart';
 import '../shell/main_shell.dart';
 import 'login_phone_screen.dart';
@@ -15,10 +15,10 @@ class AuthGate extends ConsumerWidget {
     final session = ref.watch(authSessionProvider);
 
     return switch (session) {
-      AuthSessionUnknown() || AuthSessionLoading() => const Scaffold(
-          backgroundColor: AppColors.background,
+      AuthSessionUnknown() || AuthSessionLoading() => Scaffold(
+          backgroundColor: context.appBackground,
           body: Center(
-            child: CircularProgressIndicator(color: AppColors.primary),
+            child: CircularProgressIndicator(color: context.appPrimary),
           ),
         ),
       AuthSessionUnauthenticated() => const LoginPhoneScreen(),

@@ -11,12 +11,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../constants/api_endpoints.dart';
 import '../core/network/api_service.dart';
+import '../firebase_options.dart';
 import '../providers/auth_providers.dart';
 import '../providers/dependency_providers.dart';
 import '../providers/home_providers.dart';
 import '../providers/notifications_providers.dart';
 
-/// Canal Android — doit matcher MainActivity.kt (NOTIF_CHANNEL_ID).
+/// Canal Android — doit matcher MainActivity.kt / KalungaParentsApplication.
 const kParentsAlertChannelId = 'kalunga_parents_alerts_v6';
 const kParentsAlertChannelName = 'Alertes Institut Kalunga';
 const _kNativeAlertsChannel = 'net.institutkalunga.parents/alerts';
@@ -45,11 +46,15 @@ bool _claimAlertKey(String key) {
 
 @pragma('vm:entry-point')
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  // Avec un bloc `notification` FCM, Android affiche déjà la notif système.
+  // On initialise Firebase pour les messages data-only / analytics.
   try {
-    await Firebase.initializeApp();
+    if (Firebase.apps.isEmpty) {
+      await Firebase.initializeApp(
+        options: DefaultFirebaseOptions.currentPlatform,
+      );
+    }
   } catch (_) {}
-  // Si FCM envoie déjà un bloc `notification`, Android l’affiche tout seul.
-  // Pour data-only, on ne peut pas facilement appeler MethodChannel ici.
 }
 
 /// Publie de VRAIES notifications système Android (son + bannière).
@@ -64,6 +69,7 @@ class PushNotificationService {
   bool _ready = false;
   bool _fcmReady = false;
   bool _audioConfigured = false;
+  bool _tokenRefreshBound = false;
 
   Future<void> init() async {
     if (_ready || kIsWeb) return;
@@ -90,7 +96,6 @@ class PushNotificationService {
         description: 'Messages école, présences, finances — avec son',
         importance: Importance.max,
         playSound: true,
-        sound: const RawResourceAndroidNotificationSound('kalunga_alert'),
         enableVibration: true,
         vibrationPattern: vibration,
         showBadge: true,
@@ -103,6 +108,13 @@ class PushNotificationService {
     final iosPlugin = _local.resolvePlatformSpecificImplementation<
         IOSFlutterLocalNotificationsPlugin>();
     await iosPlugin?.requestPermissions(alert: true, badge: true, sound: true);
+
+    if (defaultTargetPlatform == TargetPlatform.android) {
+      try {
+        const channel = MethodChannel(_kNativeAlertsChannel);
+        await channel.invokeMethod<void>('ensureChannel');
+      } catch (_) {}
+    }
 
     await _configureAudio();
     _ready = true;
@@ -134,12 +146,15 @@ class PushNotificationService {
   Future<void> _initFirebaseMessaging() async {
     if (kIsWeb || _fcmReady) return;
     try {
-      await Firebase.initializeApp();
-    } catch (_) {
+      if (Firebase.apps.isEmpty) {
+        await Firebase.initializeApp(
+          options: DefaultFirebaseOptions.currentPlatform,
+        );
+      }
+    } catch (e, st) {
+      debugPrint('Firebase.initializeApp failed: $e\n$st');
       return;
     }
-
-    FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
 
     final messaging = FirebaseMessaging.instance;
     await messaging.requestPermission(
@@ -155,6 +170,11 @@ class PushNotificationService {
       sound: true,
     );
 
+    // Android 13+ : sans cette permission, FCM n’affiche rien app fermée.
+    if (defaultTargetPlatform == TargetPlatform.android) {
+      await Permission.notification.request();
+    }
+
     FirebaseMessaging.onMessage.listen((RemoteMessage message) async {
       final title = message.notification?.title ??
           message.data['title']?.toString() ??
@@ -165,7 +185,6 @@ class PushNotificationService {
       final dedupe = message.data['source_id']?.toString() ??
           '${title}|$body|${message.messageId ?? ''}';
       // En foreground FCM affiche rarement la notif système → on la publie.
-      // Dédoublonnage évite le 2e coup du live-refresh.
       await showLocalAlert(
         title: title,
         body: body,
@@ -202,7 +221,6 @@ class PushNotificationService {
       importance: Importance.max,
       priority: Priority.max,
       playSound: true,
-      sound: const RawResourceAndroidNotificationSound('kalunga_alert'),
       enableVibration: true,
       vibrationPattern: vibration,
       category: AndroidNotificationCategory.message,
@@ -234,7 +252,6 @@ class PushNotificationService {
   }
 
   /// Une seule notification système (style WhatsApp).
-  /// [showInAppBanner] : uniquement pour le bouton « Tester » (sinon doublon).
   Future<bool> showLocalAlert({
     required String title,
     required String body,
@@ -253,7 +270,6 @@ class PushNotificationService {
       onInApp?.call(alert);
     }
 
-    // 1) Chemin natif Android (le plus fiable).
     if (defaultTargetPlatform == TargetPlatform.android) {
       try {
         await Permission.notification.request();
@@ -267,7 +283,6 @@ class PushNotificationService {
       } catch (_) {}
     }
 
-    // 2) Repli Flutter plugins.
     await _playAlertTone();
     try {
       await _postSystemNotification(title: title, body: body);
@@ -301,23 +316,44 @@ class PushNotificationService {
   Future<void> syncDeviceToken(String guardianPublicId) async {
     if (kIsWeb || guardianPublicId.isEmpty) return;
     if (!_ready) await init();
-    if (!_fcmReady) return;
+    if (!_fcmReady) {
+      await _initFirebaseMessaging();
+    }
+    if (!_fcmReady) {
+      debugPrint('FCM sync skipped: Firebase not ready');
+      return;
+    }
 
     try {
-      final token = await FirebaseMessaging.instance.getToken();
-      if (token == null || token.isEmpty) return;
+      // Laisse le temps au Play Services / FCM de fournir un jeton.
+      String? token;
+      for (var attempt = 0; attempt < 5; attempt++) {
+        token = await FirebaseMessaging.instance.getToken();
+        if (token != null && token.isNotEmpty) break;
+        await Future<void>.delayed(Duration(milliseconds: 400 * (attempt + 1)));
+      }
+      if (token == null || token.isEmpty) {
+        debugPrint('FCM getToken: vide après retries');
+        return;
+      }
+      debugPrint('FCM token …${token.substring(token.length - 8)}');
       await registerDeviceToken(
         guardianPublicId: guardianPublicId,
         token: token,
       );
 
-      FirebaseMessaging.instance.onTokenRefresh.listen((newToken) {
-        registerDeviceToken(
-          guardianPublicId: guardianPublicId,
-          token: newToken,
-        );
-      });
-    } catch (_) {}
+      if (!_tokenRefreshBound) {
+        _tokenRefreshBound = true;
+        FirebaseMessaging.instance.onTokenRefresh.listen((newToken) {
+          registerDeviceToken(
+            guardianPublicId: guardianPublicId,
+            token: newToken,
+          );
+        });
+      }
+    } catch (e, st) {
+      debugPrint('FCM syncDeviceToken failed: $e\n$st');
+    }
   }
 
   Future<void> registerDeviceToken({
@@ -338,7 +374,10 @@ class PushNotificationService {
         },
         parser: (raw) => Map<String, dynamic>.from(raw as Map? ?? const {}),
       );
-    } catch (_) {}
+      debugPrint('FCM device registered for $guardianPublicId');
+    } catch (e, st) {
+      debugPrint('FCM registerDeviceToken failed: $e\n$st');
+    }
   }
 }
 
@@ -359,6 +398,11 @@ final pushBootstrapProvider = Provider<void>((ref) {
         ref.invalidate(homeDashboardProvider);
         ref.invalidate(parentNotificationsProvider);
       });
+      final initial = await FirebaseMessaging.instance.getInitialMessage();
+      if (initial != null) {
+        ref.invalidate(homeDashboardProvider);
+        ref.invalidate(parentNotificationsProvider);
+      }
     } catch (_) {}
-  });
+  }, fireImmediately: true);
 });

@@ -5,12 +5,14 @@ import '../../constants/app_constants.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_theme_colors.dart';
 import '../../models/home_models.dart';
+import '../../models/notification_models.dart';
 import '../../providers/auth_providers.dart';
 import '../../providers/home_providers.dart';
 import '../../providers/settings_providers.dart';
 import '../../widgets/home/activity_item.dart';
 import '../../widgets/home/home_header.dart';
 import '../../widgets/home/overview_card.dart';
+import '../notifications/notification_detail_router.dart';
 
 /// Page Accueil — reproduction fidèle de la maquette.
 class HomeScreen extends ConsumerWidget {
@@ -220,7 +222,14 @@ class _HomeBody extends StatelessWidget {
                     : dashboard.activities.length,
                 separatorBuilder: (_, __) => const SizedBox(height: 10),
                 itemBuilder: (context, index) {
-                  return ActivityItem(activity: dashboard.activities[index]);
+                  final activity = dashboard.activities[index];
+                  return ActivityItem(
+                    activity: activity,
+                    onTap: () => openNotificationDetail(
+                      context,
+                      ParentNotificationItem.fromRecentActivity(activity),
+                    ),
+                  );
                 },
               ),
             ),

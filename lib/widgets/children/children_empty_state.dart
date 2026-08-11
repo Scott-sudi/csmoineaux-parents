@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../core/theme/app_colors.dart';
+import '../../core/theme/app_theme_colors.dart';
 
 /// État vide — maquette « Mes Enfants ».
 class ChildrenEmptyState extends StatelessWidget {
@@ -17,25 +17,25 @@ class ChildrenEmptyState extends StatelessWidget {
             Icon(
               Icons.people_outline,
               size: 72,
-              color: AppColors.primary.withOpacity(0.45),
+              color: context.appPrimary.withOpacity(0.45),
             ),
             const SizedBox(height: 16),
-            const Text(
+            Text(
               'Aucun enfant trouvé',
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w700,
-                color: AppColors.textPrimary,
+                color: context.appTextPrimary,
               ),
             ),
             const SizedBox(height: 8),
-            const Text(
+            Text(
               'Vous n\'avez aucun enfant lié à ce numéro.',
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 14,
-                color: AppColors.textSecondary,
+                color: context.appTextSecondary,
                 height: 1.4,
               ),
             ),

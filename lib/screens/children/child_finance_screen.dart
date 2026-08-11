@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/theme/app_colors.dart';
+import '../../core/theme/app_theme_colors.dart';
 import '../../models/child_models.dart';
 import '../../providers/child_modules_providers.dart';
 
@@ -16,15 +17,15 @@ class ChildFinanceScreen extends ConsumerWidget {
     final asyncData = ref.watch(childFinanceProvider(child.id));
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: context.appBackground,
       appBar: AppBar(
-        backgroundColor: AppColors.primary,
+        backgroundColor: context.appPrimary,
         foregroundColor: Colors.white,
         title: const Text('Paiement'),
       ),
       body: asyncData.when(
-        loading: () => const Center(
-          child: CircularProgressIndicator(color: AppColors.primary),
+        loading: () => Center(
+          child: CircularProgressIndicator(color: context.appPrimary),
         ),
         error: (e, _) => Center(
           child: Padding(
@@ -50,7 +51,7 @@ class ChildFinanceScreen extends ConsumerWidget {
               if (situation.schoolYearLabel.isNotEmpty)
                 Text(
                   'Année scolaire ${situation.schoolYearLabel}',
-                  style: const TextStyle(color: AppColors.textSecondary),
+                  style: TextStyle(color: context.appTextSecondary),
                 ),
               const SizedBox(height: 12),
               Container(
@@ -96,16 +97,16 @@ class ChildFinanceScreen extends ConsumerWidget {
               ),
               const SizedBox(height: 8),
               if (situation.obligations.isEmpty)
-                const Text(
+                Text(
                   'Aucune obligation pour le moment.',
-                  style: TextStyle(color: AppColors.textSecondary),
+                  style: TextStyle(color: context.appTextSecondary),
                 )
               else
                 ...situation.obligations.map(
                   (o) => Padding(
                     padding: const EdgeInsets.only(bottom: 8),
                     child: Material(
-                      color: AppColors.card,
+                      color: context.appCard,
                       borderRadius: BorderRadius.circular(12),
                       child: ListTile(
                         title: Text(
@@ -133,16 +134,16 @@ class ChildFinanceScreen extends ConsumerWidget {
               ),
               const SizedBox(height: 8),
               if (situation.payments.isEmpty)
-                const Text(
+                Text(
                   'Aucun paiement enregistré.',
-                  style: TextStyle(color: AppColors.textSecondary),
+                  style: TextStyle(color: context.appTextSecondary),
                 )
               else
                 ...situation.payments.map(
                   (p) => Padding(
                     padding: const EdgeInsets.only(bottom: 8),
                     child: Material(
-                      color: AppColors.card,
+                      color: context.appCard,
                       borderRadius: BorderRadius.circular(12),
                       child: ListTile(
                         title: Text(

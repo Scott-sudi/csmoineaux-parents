@@ -2,7 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../core/theme/app_colors.dart';
+import '../core/theme/app_theme_colors.dart';
 import '../services/app_permissions_service.dart';
 import '../services/push_notification_service.dart';
 
@@ -72,10 +72,10 @@ class _StartupPermissionsGateState
   @override
   Widget build(BuildContext context) {
     if (!_ready) {
-      return const Scaffold(
-        backgroundColor: AppColors.background,
+      return Scaffold(
+        backgroundColor: context.appBackground,
         body: Center(
-          child: CircularProgressIndicator(color: AppColors.primary),
+          child: CircularProgressIndicator(color: context.appPrimary),
         ),
       );
     }

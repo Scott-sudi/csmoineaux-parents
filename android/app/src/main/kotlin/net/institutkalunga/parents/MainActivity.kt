@@ -22,8 +22,8 @@ import io.flutter.plugin.common.MethodChannel
 class MainActivity : FlutterActivity() {
     companion object {
         private const val CHANNEL = "net.institutkalunga.parents/alerts"
-        private const val NOTIF_CHANNEL_ID = "kalunga_parents_alerts_v6"
-        private const val NOTIF_CHANNEL_NAME = "Alertes Institut Kalunga"
+        private const val NOTIF_CHANNEL_ID = KalungaParentsApplication.CHANNEL_ID
+        private const val NOTIF_CHANNEL_NAME = KalungaParentsApplication.CHANNEL_NAME
     }
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {

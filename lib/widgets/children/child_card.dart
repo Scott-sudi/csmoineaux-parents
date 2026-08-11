@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 import '../../constants/app_constants.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/theme/app_theme_colors.dart';
 import '../../models/child_models.dart';
 
 /// Actions rapides sur une carte enfant (sans Devoirs — professeurs pas encore connectés).
@@ -24,9 +25,9 @@ class ChildCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: AppColors.card,
+      color: context.appCard,
       borderRadius: BorderRadius.circular(AppConstants.radiusLarge),
-      elevation: 1.5,
+      elevation: context.isDarkTheme ? 0 : 1.5,
       shadowColor: AppColors.shadow,
       child: Padding(
         padding: const EdgeInsets.fromLTRB(14, 14, 10, 12),
@@ -48,8 +49,8 @@ class ChildCard extends StatelessWidget {
                           child.displayName,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            color: AppColors.textPrimary,
+                          style: TextStyle(
+                            color: context.appTextPrimary,
                             fontSize: 15,
                             fontWeight: FontWeight.w700,
                           ),
@@ -59,8 +60,8 @@ class ChildCard extends StatelessWidget {
                           child.classLabel,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            color: AppColors.textSecondary,
+                          style: TextStyle(
+                            color: context.appTextSecondary,
                             fontSize: 13,
                           ),
                         ),
@@ -69,8 +70,8 @@ class ChildCard extends StatelessWidget {
                           'Matricule : ${child.matricule}',
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            color: AppColors.textSecondary,
+                          style: TextStyle(
+                            color: context.appTextSecondary,
                             fontSize: 12,
                           ),
                         ),
@@ -82,9 +83,9 @@ class ChildCard extends StatelessWidget {
                   IconButton(
                     tooltip: 'Voir',
                     onPressed: onOpenProfile,
-                    icon: const Icon(
+                    icon: Icon(
                       Icons.chevron_right,
-                      color: AppColors.textSecondary,
+                      color: context.appTextSecondary,
                     ),
                   ),
                 ],
@@ -97,8 +98,10 @@ class ChildCard extends StatelessWidget {
                   child: _QuickActionTile(
                     label: 'Présence',
                     icon: Icons.event_available_outlined,
-                    background: AppColors.actionPresenceBg,
-                    iconColor: AppColors.primaryLight,
+                    background: context.isDarkTheme
+                        ? const Color(0xFF243028)
+                        : AppColors.actionPresenceBg,
+                    iconColor: context.appPrimary,
                     onTap: () => onAction?.call(ChildQuickAction.presence),
                   ),
                 ),
@@ -107,7 +110,9 @@ class ChildCard extends StatelessWidget {
                   child: _QuickActionTile(
                     label: 'Absences',
                     icon: Icons.person_off_outlined,
-                    background: AppColors.actionAbsenceBg,
+                    background: context.isDarkTheme
+                        ? const Color(0xFF2A2420)
+                        : AppColors.actionAbsenceBg,
                     iconColor: AppColors.activityMeeting,
                     onTap: () => onAction?.call(ChildQuickAction.absences),
                   ),
@@ -117,7 +122,9 @@ class ChildCard extends StatelessWidget {
                   child: _QuickActionTile(
                     label: 'Discipline',
                     icon: Icons.folder_outlined,
-                    background: AppColors.actionDisciplineBg,
+                    background: context.isDarkTheme
+                        ? const Color(0xFF2A2030)
+                        : AppColors.actionDisciplineBg,
                     iconColor: const Color(0xFF7B1FA2),
                     onTap: () => onAction?.call(ChildQuickAction.discipline),
                   ),
@@ -127,8 +134,10 @@ class ChildCard extends StatelessWidget {
                   child: _QuickActionTile(
                     label: 'Paiements',
                     icon: Icons.account_balance_wallet_outlined,
-                    background: AppColors.actionPaymentBg,
-                    iconColor: AppColors.primaryLight,
+                    background: context.isDarkTheme
+                        ? const Color(0xFF243028)
+                        : AppColors.actionPaymentBg,
+                    iconColor: context.appPrimary,
                     onTap: () => onAction?.call(ChildQuickAction.payments),
                   ),
                 ),
@@ -176,8 +185,8 @@ class _QuickActionTile extends StatelessWidget {
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 textAlign: TextAlign.center,
-                style: const TextStyle(
-                  color: AppColors.textPrimary,
+                style: TextStyle(
+                  color: context.appTextPrimary,
                   fontSize: 10,
                   fontWeight: FontWeight.w600,
                 ),
@@ -200,8 +209,8 @@ class _Avatar extends StatelessWidget {
     final url = child.photoUrl;
     final initials = Text(
       child.initials,
-      style: const TextStyle(
-        color: AppColors.primary,
+      style: TextStyle(
+        color: context.appPrimary,
         fontWeight: FontWeight.w700,
         fontSize: 16,
       ),
@@ -211,7 +220,7 @@ class _Avatar extends StatelessWidget {
       child: Container(
         width: 56,
         height: 56,
-        color: AppColors.lightGreen,
+        color: context.appAvatarBg,
         alignment: Alignment.center,
         child: (url == null || url.isEmpty)
             ? initials
@@ -228,12 +237,12 @@ class _Avatar extends StatelessWidget {
                 errorBuilder: (_, __, ___) => initials,
                 loadingBuilder: (context, childWidget, progress) {
                   if (progress == null) return childWidget;
-                  return const SizedBox(
+                  return SizedBox(
                     width: 18,
                     height: 18,
                     child: CircularProgressIndicator(
                       strokeWidth: 2,
-                      color: AppColors.primary,
+                      color: context.appPrimary,
                     ),
                   );
                 },
@@ -253,13 +262,21 @@ class _StatusBadge extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: isActive ? AppColors.lightGreen : AppColors.inactiveBadgeBg,
+        color: isActive
+            ? context.appAvatarBg
+            : (context.isDarkTheme
+                ? const Color(0xFF2C332E)
+                : AppColors.inactiveBadgeBg),
         borderRadius: BorderRadius.circular(AppConstants.radiusSmall),
       ),
       child: Text(
         isActive ? 'Actif' : 'Inactif',
         style: TextStyle(
-          color: isActive ? AppColors.primary : AppColors.inactiveBadge,
+          color: isActive
+              ? context.appPrimary
+              : (context.isDarkTheme
+                  ? context.appTextSecondary
+                  : AppColors.inactiveBadge),
           fontSize: 11,
           fontWeight: FontWeight.w600,
         ),

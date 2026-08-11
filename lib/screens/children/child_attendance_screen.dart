@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/theme/app_colors.dart';
+import '../../core/theme/app_theme_colors.dart';
 import '../../models/child_models.dart';
 import '../../providers/child_modules_providers.dart';
 
@@ -25,15 +26,15 @@ class ChildAttendanceScreen extends ConsumerWidget {
     );
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: context.appBackground,
       appBar: AppBar(
-        backgroundColor: AppColors.primary,
+        backgroundColor: context.appPrimary,
         foregroundColor: Colors.white,
         title: Text(title),
       ),
       body: asyncData.when(
-        loading: () => const Center(
-          child: CircularProgressIndicator(color: AppColors.primary),
+        loading: () => Center(
+          child: CircularProgressIndicator(color: context.appPrimary),
         ),
         error: (e, _) => _CenteredMessage(
           message: e.toString(),
@@ -56,7 +57,7 @@ class ChildAttendanceScreen extends ConsumerWidget {
             itemBuilder: (context, index) {
               final day = result.days[index];
               return Material(
-                color: AppColors.card,
+                color: context.appCard,
                 borderRadius: BorderRadius.circular(12),
                 child: ListTile(
                   leading: Icon(
@@ -104,7 +105,7 @@ class _CenteredMessage extends StatelessWidget {
             Text(
               message,
               textAlign: TextAlign.center,
-              style: const TextStyle(color: AppColors.textSecondary),
+              style: TextStyle(color: context.appTextSecondary),
             ),
             if (onRetry != null) ...[
               const SizedBox(height: 16),

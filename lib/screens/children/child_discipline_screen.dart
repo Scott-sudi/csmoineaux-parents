@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/theme/app_colors.dart';
+import '../../core/theme/app_theme_colors.dart';
 import '../../models/child_models.dart';
 import '../../models/child_module_models.dart';
 import '../../providers/child_modules_providers.dart';
@@ -18,15 +19,15 @@ class ChildDisciplineScreen extends ConsumerWidget {
     final asyncData = ref.watch(childDisciplineProvider(child.id));
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: context.appBackground,
       appBar: AppBar(
-        backgroundColor: AppColors.primary,
+        backgroundColor: context.appPrimary,
         foregroundColor: Colors.white,
         title: const Text('Discipline'),
       ),
       body: asyncData.when(
-        loading: () => const Center(
-          child: CircularProgressIndicator(color: AppColors.primary),
+        loading: () => Center(
+          child: CircularProgressIndicator(color: context.appPrimary),
         ),
         error: (e, _) => Center(
           child: Padding(
@@ -46,7 +47,7 @@ class ChildDisciplineScreen extends ConsumerWidget {
           ),
         ),
         data: (dossier) => RefreshIndicator(
-          color: AppColors.primary,
+          color: context.appPrimary,
           onRefresh: () async {
             ref.invalidate(childDisciplineProvider(child.id));
             await ref.read(childDisciplineProvider(child.id).future);
@@ -145,7 +146,7 @@ class _HeaderCard extends StatelessWidget {
         : child.photoUrl;
 
     return Material(
-      color: AppColors.card,
+      color: context.appCard,
       borderRadius: BorderRadius.circular(12),
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -156,21 +157,21 @@ class _HeaderCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
+                  Text(
                     'DOSSIER DISCIPLINAIRE',
                     style: TextStyle(
                       fontWeight: FontWeight.w800,
                       fontSize: 15,
                       letterSpacing: 0.4,
-                      color: AppColors.primary,
+                      color: context.appPrimary,
                     ),
                   ),
                   if (dossier.reference.isNotEmpty) ...[
                     const SizedBox(height: 6),
                     Text(
                       'Réf. ${dossier.reference}',
-                      style: const TextStyle(
-                        color: AppColors.textSecondary,
+                      style: TextStyle(
+                        color: context.appTextSecondary,
                         fontSize: 13,
                       ),
                     ),
@@ -179,7 +180,7 @@ class _HeaderCard extends StatelessWidget {
                     const SizedBox(height: 4),
                     Text(
                       'Année scolaire ${dossier.schoolYearLabel}',
-                      style: const TextStyle(color: AppColors.textSecondary),
+                      style: TextStyle(color: context.appTextSecondary),
                     ),
                   ],
                   if (dossier.followupStatusLabel.isNotEmpty) ...[
@@ -195,8 +196,8 @@ class _HeaderCard extends StatelessWidget {
                       ),
                       child: Text(
                         dossier.followupStatusLabel,
-                        style: const TextStyle(
-                          color: AppColors.primary,
+                        style: TextStyle(
+                          color: context.appPrimary,
                           fontWeight: FontWeight.w600,
                           fontSize: 13,
                         ),
@@ -225,8 +226,8 @@ class _DossierPhoto extends StatelessWidget {
   Widget build(BuildContext context) {
     final fallback = Text(
       initials,
-      style: const TextStyle(
-        color: AppColors.primary,
+      style: TextStyle(
+        color: context.appPrimary,
         fontWeight: FontWeight.w700,
         fontSize: 20,
       ),
@@ -259,7 +260,7 @@ class _DossierPhoto extends StatelessWidget {
                     height: 22,
                     child: CircularProgressIndicator(
                       strokeWidth: 2,
-                      color: AppColors.primary,
+                      color: context.appPrimary,
                     ),
                   );
                 },
@@ -287,19 +288,19 @@ class _IdentityCard extends StatelessWidget {
     if (rows.isEmpty) return const SizedBox.shrink();
 
     return Material(
-      color: AppColors.card,
+      color: context.appCard,
       borderRadius: BorderRadius.circular(12),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
+            Text(
               'Identité de l’élève',
               style: TextStyle(
                 fontWeight: FontWeight.w700,
                 fontSize: 15,
-                color: AppColors.textPrimary,
+                color: context.appTextPrimary,
               ),
             ),
             const SizedBox(height: 10),
@@ -312,8 +313,8 @@ class _IdentityCard extends StatelessWidget {
                       width: 88,
                       child: Text(
                         e.key,
-                        style: const TextStyle(
-                          color: AppColors.textSecondary,
+                        style: TextStyle(
+                          color: context.appTextSecondary,
                           fontSize: 13,
                         ),
                       ),
@@ -372,7 +373,7 @@ class _StatsGrid extends StatelessWidget {
           children: items
               .map(
                 (e) => Material(
-                  color: AppColors.card,
+                  color: context.appCard,
                   borderRadius: BorderRadius.circular(10),
                   child: Padding(
                     padding: const EdgeInsets.symmetric(
@@ -385,17 +386,17 @@ class _StatsGrid extends StatelessWidget {
                       children: [
                         Text(
                           e.$1,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 12,
-                            color: AppColors.textSecondary,
+                            color: context.appTextSecondary,
                           ),
                         ),
                         Text(
                           '${e.$2}',
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.w700,
-                            color: AppColors.textPrimary,
+                            color: context.appTextPrimary,
                           ),
                         ),
                       ],
@@ -421,10 +422,10 @@ class _SectionTitle extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: 8, top: 4),
       child: Text(
         title,
-        style: const TextStyle(
+        style: TextStyle(
           fontWeight: FontWeight.w700,
           fontSize: 16,
-          color: AppColors.textPrimary,
+          color: context.appTextPrimary,
         ),
       ),
     );
@@ -442,7 +443,7 @@ class _EmptyLine extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: 8),
       child: Text(
         text,
-        style: const TextStyle(color: AppColors.textSecondary, fontSize: 13),
+        style: TextStyle(color: context.appTextSecondary, fontSize: 13),
       ),
     );
   }
@@ -459,7 +460,7 @@ class _SimpleTile extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: Material(
-        color: AppColors.card,
+        color: context.appCard,
         borderRadius: BorderRadius.circular(12),
         child: ListTile(
           title: Text(
@@ -470,7 +471,7 @@ class _SimpleTile extends StatelessWidget {
               ? null
               : Text(
                   subtitle,
-                  style: const TextStyle(color: AppColors.textSecondary),
+                  style: TextStyle(color: context.appTextSecondary),
                 ),
         ),
       ),
@@ -495,7 +496,7 @@ class _IncidentTile extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: Material(
-        color: AppColors.card,
+        color: context.appCard,
         borderRadius: BorderRadius.circular(12),
         child: ListTile(
           title: Text(
@@ -508,14 +509,14 @@ class _IncidentTile extends StatelessWidget {
               if (meta.isNotEmpty)
                 Text(
                   meta,
-                  style: const TextStyle(color: AppColors.textSecondary),
+                  style: TextStyle(color: context.appTextSecondary),
                 ),
               if (item.description.isNotEmpty) ...[
                 const SizedBox(height: 4),
                 Text(
                   item.description,
-                  style: const TextStyle(
-                    color: AppColors.textSecondary,
+                  style: TextStyle(
+                    color: context.appTextSecondary,
                     fontSize: 13,
                   ),
                 ),

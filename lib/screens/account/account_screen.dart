@@ -8,7 +8,6 @@ import '../../providers/auth_providers.dart';
 import '../../providers/home_providers.dart';
 import '../../providers/profile_photo_provider.dart';
 import '../../providers/settings_providers.dart';
-import '../../services/push_notification_service.dart';
 import '../about/about_screen.dart';
 import 'help_support_screen.dart';
 import 'personal_info_screen.dart';
@@ -161,36 +160,6 @@ class AccountScreen extends ConsumerWidget {
                     color: cardBg,
                     divider: divider,
                     children: [
-                      _SettingsRow(
-                        icon: Icons.notifications_active_outlined,
-                        label: 'Tester l’alerte (son)',
-                        textPrimary: textPrimary,
-                        textSecondary: textSecondary,
-                        onTap: () async {
-                          final push =
-                              ref.read(pushNotificationServiceProvider);
-                          ref.read(inAppAlertProvider.notifier).state = null;
-                          final enabled =
-                              await push.areSystemNotificationsEnabled();
-                          final posted = await push.showLocalAlert(
-                            title: 'Test Institut Kalunga',
-                            body:
-                                'Si vous entendez ceci, le son fonctionne.',
-                            dedupeKey:
-                                'manual-test-${DateTime.now().millisecondsSinceEpoch}',
-                            showInAppBanner: false,
-                          );
-                          if (!context.mounted) return;
-                          final msg = !enabled
-                              ? 'Notifications système DÉSACTIVÉES pour cette app. Active-les dans Réglages Android.'
-                              : posted
-                                  ? 'Notification système publiée. Tu dois entendre le son et voir la cloche dans la barre.'
-                                  : 'Échec publication système. Réautorise les notifications pour Institut Kalunga.';
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text(msg), duration: const Duration(seconds: 5)),
-                          );
-                        },
-                      ),
                       _SettingsRow(
                         icon: Icons.info_outline,
                         label: s.aboutTitle,

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../constants/app_constants.dart';
-import '../../core/theme/app_colors.dart';
+import '../../core/theme/app_theme_colors.dart';
 import '../../models/child_models.dart';
 import '../../providers/children_providers.dart';
 import '../../widgets/children/child_card.dart';
@@ -21,9 +21,9 @@ class ChildrenScreen extends ConsumerWidget {
     final asyncChildren = ref.watch(childrenListProvider);
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: context.appBackground,
       appBar: AppBar(
-        backgroundColor: AppColors.primary,
+        backgroundColor: context.appPrimary,
         foregroundColor: Colors.white,
         elevation: 0,
         centerTitle: true,
@@ -33,8 +33,8 @@ class ChildrenScreen extends ConsumerWidget {
         ),
       ),
       body: asyncChildren.when(
-        loading: () => const Center(
-          child: CircularProgressIndicator(color: AppColors.primary),
+        loading: () => Center(
+          child: CircularProgressIndicator(color: context.appPrimary),
         ),
         error: (error, _) => _ErrorState(
           message: error.toString(),
@@ -43,7 +43,7 @@ class ChildrenScreen extends ConsumerWidget {
         data: (children) {
           if (children.isEmpty) {
             return RefreshIndicator(
-              color: AppColors.primary,
+              color: context.appPrimary,
               onRefresh: () async {
                 ref.invalidate(childrenListProvider);
                 await ref.read(childrenListProvider.future);
@@ -61,7 +61,7 @@ class ChildrenScreen extends ConsumerWidget {
           }
 
           return RefreshIndicator(
-            color: AppColors.primary,
+            color: context.appPrimary,
             onRefresh: () async {
               ref.invalidate(childrenListProvider);
               await ref.read(childrenListProvider.future);
@@ -119,7 +119,6 @@ class ChildrenScreen extends ConsumerWidget {
       MaterialPageRoute<void>(builder: (_) => screen),
     );
   }
-
 }
 
 class _ErrorState extends StatelessWidget {
@@ -139,16 +138,16 @@ class _ErrorState extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(
+            Icon(
               Icons.wifi_off_outlined,
               size: 48,
-              color: AppColors.primary,
+              color: context.appPrimary,
             ),
             const SizedBox(height: 12),
             Text(
               message,
               textAlign: TextAlign.center,
-              style: const TextStyle(color: AppColors.textSecondary),
+              style: TextStyle(color: context.appTextSecondary),
             ),
             const SizedBox(height: 16),
             ElevatedButton(

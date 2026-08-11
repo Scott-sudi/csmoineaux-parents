@@ -117,7 +117,24 @@ class ParentNotificationItem extends Equatable {
         subtitle: subtitle,
         timestampLabel: timestampLabel,
         type: type,
+        body: body,
+        source: source,
+        sourceId: sourceId,
       );
+
+  /// Depuis une activité Accueil (même source que l’inbox Notifications).
+  factory ParentNotificationItem.fromRecentActivity(RecentActivity activity) {
+    return ParentNotificationItem(
+      id: activity.id,
+      title: activity.title,
+      subtitle: activity.subtitle,
+      timestampLabel: activity.timestampLabel,
+      type: activity.type,
+      body: activity.body.isNotEmpty ? activity.body : activity.subtitle,
+      source: activity.source,
+      sourceId: activity.sourceId,
+    );
+  }
 
   factory ParentNotificationItem.fromJson(Map<String, dynamic> json) {
     DateTime? occurred;

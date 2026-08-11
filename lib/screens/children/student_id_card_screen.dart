@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../constants/app_constants.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/theme/app_theme_colors.dart';
 import '../../models/child_models.dart';
 import '../../models/student_id_card.dart';
 import '../../providers/child_modules_providers.dart';
@@ -18,9 +19,9 @@ class StudentIdCardScreen extends ConsumerWidget {
     final asyncCard = ref.watch(childIdCardProvider(child.id));
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF0F0F0),
+      backgroundColor: context.appBackground,
       appBar: AppBar(
-        backgroundColor: AppColors.primary,
+        backgroundColor: context.appPrimary,
         foregroundColor: Colors.white,
         title: const Text(
           'Carte d’élève',
@@ -28,8 +29,8 @@ class StudentIdCardScreen extends ConsumerWidget {
         ),
       ),
       body: asyncCard.when(
-        loading: () => const Center(
-          child: CircularProgressIndicator(color: AppColors.primary),
+        loading: () => Center(
+          child: CircularProgressIndicator(color: context.appPrimary),
         ),
         error: (e, _) => Center(
           child: Padding(
@@ -40,7 +41,7 @@ class StudentIdCardScreen extends ConsumerWidget {
                 Text(
                   e.toString().replaceFirst('Exception: ', ''),
                   textAlign: TextAlign.center,
-                  style: const TextStyle(color: AppColors.textSecondary),
+                  style: TextStyle(color: context.appTextSecondary),
                 ),
                 const SizedBox(height: 16),
                 ElevatedButton(
@@ -88,7 +89,7 @@ class _CardBody extends StatelessWidget {
                     color: Colors.white,
                     child: Center(
                       child: CircularProgressIndicator(
-                        color: AppColors.primary,
+                        color: context.appPrimary,
                       ),
                     ),
                   );
@@ -105,9 +106,9 @@ class _CardBody extends StatelessWidget {
         Text(
           'Carte N° ${card.cardNumber}',
           textAlign: TextAlign.center,
-          style: const TextStyle(
+          style: TextStyle(
             fontWeight: FontWeight.w700,
-            color: AppColors.textPrimary,
+            color: context.appTextPrimary,
           ),
         ),
         const SizedBox(height: 6),
@@ -116,7 +117,7 @@ class _CardBody extends StatelessWidget {
           textAlign: TextAlign.center,
           style: TextStyle(
             fontSize: 12.5,
-            color: AppColors.textSecondary.withOpacity(0.9),
+            color: context.appTextSecondary.withOpacity(0.9),
           ),
         ),
       ],
@@ -158,10 +159,10 @@ class _FlutterIdCard extends StatelessWidget {
                       height: 36,
                       color: AppColors.lightGreen,
                       alignment: Alignment.center,
-                      child: const Text(
+                      child: Text(
                         'IK',
                         style: TextStyle(
-                          color: AppColors.primary,
+                          color: context.appPrimary,
                           fontWeight: FontWeight.w800,
                           fontSize: 11,
                         ),
