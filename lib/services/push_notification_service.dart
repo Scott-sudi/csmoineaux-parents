@@ -6,7 +6,6 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:flutter_ringtone_player/flutter_ringtone_player.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../constants/api_endpoints.dart';
@@ -16,8 +15,8 @@ import '../providers/dependency_providers.dart';
 import '../providers/home_providers.dart';
 import '../providers/notifications_providers.dart';
 
-/// Canal Android v4 — son système + alarme (Android verrouille les canaux).
-const kParentsAlertChannelId = 'kalunga_parents_alerts_v4';
+/// Canal Android — nouveau id = nouveau réglage son (Android verrouille les canaux).
+const kParentsAlertChannelId = 'kalunga_parents_alerts_v5';
 const kParentsAlertChannelName = 'Alertes Institut Kalunga';
 
 class InAppAlert {
@@ -35,7 +34,7 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   } catch (_) {}
 }
 
-/// Notifications locales (son système + bannière) + push FCM.
+/// Publie de VRAIES notifications système Android (son + bannière).
 class PushNotificationService {
   PushNotificationService({required ApiService api}) : _api = api;
 
@@ -43,7 +42,6 @@ class PushNotificationService {
   final FlutterLocalNotificationsPlugin _local =
       FlutterLocalNotificationsPlugin();
   final AudioPlayer _player = AudioPlayer();
-  final FlutterRingtonePlayer _ringtone = FlutterRingtonePlayer();
 
   bool _ready = false;
   bool _fcmReady = false;
@@ -71,7 +69,7 @@ class PushNotificationService {
       AndroidNotificationChannel(
         kParentsAlertChannelId,
         kParentsAlertChannelName,
-        description: 'Alertes sonores Institut Kalunga',
+        description: 'Messages école, présences, finances — avec son',
         importance: Importance.max,
         playSound: true,
         sound: const RawResourceAndroidNotificationSound('kalunga_alert'),
@@ -79,7 +77,7 @@ class PushNotificationService {
         vibrationPattern: vibration,
         showBadge: true,
         enableLights: true,
-        audioAttributesUsage: AudioAttributesUsage.alarm,
+        audioAttributesUsage: AudioAttributesUsage.notificationRingtone,
       ),
     );
     await androidPlugin?.requestNotificationsPermission();
@@ -89,7 +87,6 @@ class PushNotificationService {
     await iosPlugin?.requestPermissions(alert: true, badge: true, sound: true);
 
     await _configureAudio();
-
     _ready = true;
     await _initFirebaseMessaging();
   }
@@ -104,7 +101,7 @@ class PushNotificationService {
               isSpeakerphoneOn: true,
               stayAwake: true,
               contentType: AndroidContentType.sonification,
-              usageType: AndroidUsageType.alarm,
+              usageType: AndroidUsageType.notificationRingtone,
               audioFocus: AndroidAudioFocus.gainTransientMayDuck,
             ),
           ),
@@ -153,68 +150,40 @@ class PushNotificationService {
     _fcmReady = true;
   }
 
-  /// Son fort : ringtone système (flux alarme) + WAV + vibration.
   Future<void> _playAlertTone() async {
     await _configureAudio();
-
-    // 1) Sonnerie / notif système Android (le plus fiable).
-    try {
-      await _ringtone.play(
-        android: AndroidSounds.notification,
-        ios: IosSounds.triTone,
-        volume: 1.0,
-        looping: false,
-        asAlarm: true, // ignore le mode vibreur / silencieux soft
-      );
-    } catch (_) {
-      try {
-        await _ringtone.playNotification(volume: 1.0, asAlarm: true);
-      } catch (_) {}
-    }
-
-    // 2) Notre WAV en flux « alarme ».
     try {
       await _player.stop();
       await _player.play(AssetSource('sounds/kalunga_alert.wav'), volume: 1.0);
     } catch (_) {}
-
-    // 3) Vibration + clic système de secours.
     try {
       await HapticFeedback.heavyImpact();
       await SystemSound.play(SystemSoundType.alert);
     } catch (_) {}
   }
 
-  /// Son + notif système + callback bannière in-app.
-  Future<void> showLocalAlert({
+  Future<void> _postSystemNotification({
     required String title,
     required String body,
-    void Function(InAppAlert alert)? onInApp,
+    String? icon,
   }) async {
-    if (kIsWeb) return;
-    if (!_ready) await init();
-
-    onInApp?.call(InAppAlert(title: title, body: body));
-    await _playAlertTone();
-
     final vibration = Int64List.fromList([0, 500, 200, 500, 200, 500]);
-
     final androidDetails = AndroidNotificationDetails(
       kParentsAlertChannelId,
       kParentsAlertChannelName,
-      channelDescription: 'Alertes sonores Institut Kalunga',
+      channelDescription: 'Messages école, présences, finances — avec son',
       importance: Importance.max,
       priority: Priority.max,
       playSound: true,
       sound: const RawResourceAndroidNotificationSound('kalunga_alert'),
       enableVibration: true,
       vibrationPattern: vibration,
-      category: AndroidNotificationCategory.alarm,
+      category: AndroidNotificationCategory.message,
       visibility: NotificationVisibility.public,
       ticker: 'Alerte Institut Kalunga',
       styleInformation: BigTextStyleInformation(body, contentTitle: title),
-      audioAttributesUsage: AudioAttributesUsage.alarm,
-      icon: '@drawable/ic_stat_notify',
+      audioAttributesUsage: AudioAttributesUsage.notificationRingtone,
+      icon: icon ?? '@drawable/ic_stat_notify',
       channelShowBadge: true,
       onlyAlertOnce: false,
       silent: false,
@@ -226,17 +195,41 @@ class PushNotificationService {
       interruptionLevel: InterruptionLevel.timeSensitive,
     );
 
+    await _local.show(
+      id: DateTime.now().millisecondsSinceEpoch.remainder(100000),
+      title: title,
+      body: body,
+      notificationDetails: NotificationDetails(
+        android: androidDetails,
+        iOS: iosDetails,
+      ),
+    );
+  }
+
+  /// Vraie notif Android (barre + son) + bannière in-app + tonalité.
+  Future<void> showLocalAlert({
+    required String title,
+    required String body,
+    void Function(InAppAlert alert)? onInApp,
+  }) async {
+    if (kIsWeb) return;
+    if (!_ready) await init();
+
+    onInApp?.call(InAppAlert(title: title, body: body));
+    await _playAlertTone();
+
     try {
-      await _local.show(
-        id: DateTime.now().millisecondsSinceEpoch.remainder(100000),
-        title: title,
-        body: body,
-        notificationDetails: NotificationDetails(
-          android: androidDetails,
-          iOS: iosDetails,
-        ),
-      );
-    } catch (_) {}
+      await _postSystemNotification(title: title, body: body);
+    } catch (_) {
+      // Repli icône launcher si drawable custom échoue.
+      try {
+        await _postSystemNotification(
+          title: title,
+          body: body,
+          icon: '@mipmap/ic_launcher',
+        );
+      } catch (_) {}
+    }
   }
 
   Future<void> syncDeviceToken(String guardianPublicId) async {
