@@ -15,6 +15,7 @@ import androidx.core.app.NotificationCompat
 class KalungaParentsApplication : Application() {
     override fun onCreate() {
         super.onCreate()
+        instance = this
         ensureParentsAlertChannel()
     }
 
@@ -45,5 +46,12 @@ class KalungaParentsApplication : Application() {
     companion object {
         const val CHANNEL_ID = "kalunga_parents_alerts_v6"
         const val CHANNEL_NAME = "Alertes Institut Kalunga"
+
+        @Volatile
+        var instance: KalungaParentsApplication? = null
+            private set
+
+        @Volatile
+        var isInForeground: Boolean = false
     }
 }

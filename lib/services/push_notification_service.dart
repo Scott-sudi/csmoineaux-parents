@@ -1,4 +1,5 @@
 import 'dart:typed_data';
+import 'dart:ui' show Color;
 
 import 'package:audioplayers/audioplayers.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -229,6 +230,8 @@ class PushNotificationService {
       styleInformation: BigTextStyleInformation(body, contentTitle: title),
       audioAttributesUsage: AudioAttributesUsage.notificationRingtone,
       icon: icon ?? '@drawable/ic_stat_notify',
+      largeIcon: const DrawableResourceAndroidBitmap('ic_notification_large'),
+      color: const Color(0xFF2E7D32),
       channelShowBadge: true,
       onlyAlertOnce: false,
       silent: false,
