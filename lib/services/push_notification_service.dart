@@ -29,11 +29,27 @@ class InAppAlert {
 
 final inAppAlertProvider = StateProvider<InAppAlert?>((ref) => null);
 
+/// Anti-doublon FCM + polling (même alerte en < 90 s).
+final Map<String, DateTime> _recentAlertKeys = {};
+
+bool _claimAlertKey(String key) {
+  final now = DateTime.now();
+  _recentAlertKeys.removeWhere(
+    (_, at) => now.difference(at) > const Duration(seconds: 90),
+  );
+  if (key.isEmpty) return true;
+  if (_recentAlertKeys.containsKey(key)) return false;
+  _recentAlertKeys[key] = now;
+  return true;
+}
+
 @pragma('vm:entry-point')
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   try {
     await Firebase.initializeApp();
   } catch (_) {}
+  // Si FCM envoie déjà un bloc `notification`, Android l’affiche tout seul.
+  // Pour data-only, on ne peut pas facilement appeler MethodChannel ici.
 }
 
 /// Publie de VRAIES notifications système Android (son + bannière).
@@ -146,7 +162,16 @@ class PushNotificationService {
       final body = message.notification?.body ??
           message.data['body']?.toString() ??
           'Vous avez une nouvelle notification.';
-      await showLocalAlert(title: title, body: body);
+      final dedupe = message.data['source_id']?.toString() ??
+          '${title}|$body|${message.messageId ?? ''}';
+      // En foreground FCM affiche rarement la notif système → on la publie.
+      // Dédoublonnage évite le 2e coup du live-refresh.
+      await showLocalAlert(
+        title: title,
+        body: body,
+        dedupeKey: dedupe,
+        showInAppBanner: false,
+      );
     });
 
     _fcmReady = true;
@@ -208,19 +233,27 @@ class PushNotificationService {
     );
   }
 
-  /// Vraie notif Android (barre + son) + bannière in-app.
-  /// Retourne `true` si Android a bien publié la notification système.
+  /// Une seule notification système (style WhatsApp).
+  /// [showInAppBanner] : uniquement pour le bouton « Tester » (sinon doublon).
   Future<bool> showLocalAlert({
     required String title,
     required String body,
     void Function(InAppAlert alert)? onInApp,
+    String? dedupeKey,
+    bool showInAppBanner = false,
   }) async {
     if (kIsWeb) return false;
     if (!_ready) await init();
 
-    onInApp?.call(InAppAlert(title: title, body: body));
+    final key = (dedupeKey ?? '$title|$body').trim();
+    if (!_claimAlertKey(key)) return false;
 
-    // 1) Chemin natif Android (le plus fiable) — sonnerie système + notify().
+    if (showInAppBanner) {
+      final alert = InAppAlert(title: title, body: body);
+      onInApp?.call(alert);
+    }
+
+    // 1) Chemin natif Android (le plus fiable).
     if (defaultTargetPlatform == TargetPlatform.android) {
       try {
         await Permission.notification.request();

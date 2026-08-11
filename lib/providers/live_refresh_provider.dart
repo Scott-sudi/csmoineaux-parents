@@ -8,9 +8,9 @@ import 'auth_providers.dart';
 import 'home_providers.dart';
 import 'notifications_providers.dart';
 
-const _liveRefreshInterval = Duration(seconds: 5);
+const _liveRefreshInterval = Duration(seconds: 8);
 
-/// Garde Accueil + Notifications à jour et déclenche son + bannière.
+/// Garde Accueil + Notifications à jour et déclenche **une** alerte système.
 class LiveRefreshController extends StateNotifier<int>
     with WidgetsBindingObserver {
   LiveRefreshController(this._ref) : super(0) {
@@ -25,8 +25,7 @@ class LiveRefreshController extends StateNotifier<int>
   Timer? _timer;
   ProviderSubscription<AuthSessionState>? _authSub;
   Set<String>? _knownIds;
-  String? _lastTopId;
-  int? _lastTotal;
+  final Set<String> _alertedIds = {};
   bool _refreshing = false;
   bool _baselineReady = false;
 
@@ -37,8 +36,7 @@ class LiveRefreshController extends StateNotifier<int>
     } else {
       _stop();
       _knownIds = null;
-      _lastTopId = null;
-      _lastTotal = null;
+      _alertedIds.clear();
       _baselineReady = false;
     }
   }
@@ -53,23 +51,6 @@ class LiveRefreshController extends StateNotifier<int>
   void _stop() {
     _timer?.cancel();
     _timer = null;
-  }
-
-  Future<void> _fireAlert({
-    required String title,
-    required String body,
-  }) async {
-    // Bannière immédiate (même si le player échoue après).
-    _ref.read(inAppAlertProvider.notifier).state =
-        InAppAlert(title: title, body: body);
-
-    await _ref.read(pushNotificationServiceProvider).showLocalAlert(
-          title: title,
-          body: body,
-          onInApp: (alert) {
-            _ref.read(inAppAlertProvider.notifier).state = alert;
-          },
-        );
   }
 
   Future<void> refreshNow() async {
@@ -89,42 +70,41 @@ class LiveRefreshController extends StateNotifier<int>
       final inbox = await _ref.read(parentNotificationsProvider.future);
       final ids =
           inbox.items.map((e) => e.id).where((id) => id.isNotEmpty).toSet();
-      final topId = inbox.items.isNotEmpty ? inbox.items.first.id : '';
-      final total = inbox.totalCount;
 
       final prevIds = _knownIds;
-      final prevTop = _lastTopId;
-      final prevTotal = _lastTotal;
-
       _knownIds = ids;
-      _lastTopId = topId;
-      _lastTotal = total;
 
       // 1er passage : mémoriser sans alerter.
       if (!_baselineReady || prevIds == null) {
         _baselineReady = true;
+        _alertedIds.addAll(ids);
         return;
       }
 
       final newcomers = ids.difference(prevIds);
-      final topChanged = topId.isNotEmpty && topId != prevTop;
-      final countUp = total > (prevTotal ?? 0);
-
-      if (newcomers.isEmpty && !topChanged && !countUp) return;
+      // Uniquement les vrais nouveaux ids, jamais déjà alertés.
+      final toAlert = newcomers.difference(_alertedIds);
+      if (toAlert.isEmpty) return;
 
       final newest = inbox.items.firstWhere(
-        (e) => newcomers.contains(e.id) || e.id == topId,
-        orElse: () => inbox.items.isNotEmpty
-            ? inbox.items.first
-            : throw StateError('empty'),
+        (e) => toAlert.contains(e.id),
+        orElse: () => inbox.items.first,
       );
+      _alertedIds.addAll(toAlert);
 
-      await _fireAlert(
-        title: newest.title.isNotEmpty ? newest.title : 'Institut Kalunga',
-        body: newest.subtitle.isNotEmpty
-            ? newest.subtitle
-            : 'Vous avez une nouvelle notification.',
-      );
+      final title =
+          newest.title.isNotEmpty ? newest.title : 'Institut Kalunga';
+      final body = newest.subtitle.isNotEmpty
+          ? newest.subtitle
+          : 'Vous avez une nouvelle notification.';
+
+      // Une seule notification système (pas de 2e bandeau « test »).
+      await _ref.read(pushNotificationServiceProvider).showLocalAlert(
+            title: title,
+            body: body,
+            dedupeKey: newest.id,
+            showInAppBanner: false,
+          );
     } catch (_) {
       // Réseau / 429 : prochain tick.
     } finally {

@@ -9,9 +9,6 @@ import android.content.pm.PackageManager
 import android.media.AudioAttributes
 import android.media.RingtoneManager
 import android.os.Build
-import android.os.VibrationEffect
-import android.os.Vibrator
-import android.os.VibratorManager
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
@@ -20,8 +17,7 @@ import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
 
 /**
- * Notifications système natives (canal + sonnerie + vibration).
- * Contourne les échecs silencieux de flutter_local_notifications sur certains OEM.
+ * Notifications système natives (canal + son unique).
  */
 class MainActivity : FlutterActivity() {
     companion object {
@@ -79,32 +75,6 @@ class MainActivity : FlutterActivity() {
         mgr.createNotificationChannel(channel)
     }
 
-    private fun playSystemTone() {
-        try {
-            val uri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
-            val ringtone = RingtoneManager.getRingtone(applicationContext, uri)
-            ringtone?.play()
-        } catch (_: Exception) {
-        }
-        try {
-            val vibrator = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                getSystemService(VibratorManager::class.java).defaultVibrator
-            } else {
-                @Suppress("DEPRECATION")
-                getSystemService(VIBRATOR_SERVICE) as Vibrator
-            }
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                vibrator.vibrate(
-                    VibrationEffect.createWaveform(longArrayOf(0, 500, 200, 500), -1)
-                )
-            } else {
-                @Suppress("DEPRECATION")
-                vibrator.vibrate(longArrayOf(0, 500, 200, 500), -1)
-            }
-        } catch (_: Exception) {
-        }
-    }
-
     private fun showAlert(title: String, body: String): Boolean {
         ensureChannel()
 
@@ -118,8 +88,6 @@ class MainActivity : FlutterActivity() {
         if (!NotificationManagerCompat.from(this).areNotificationsEnabled()) {
             return false
         }
-
-        playSystemTone()
 
         val launch = Intent(this, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP
@@ -140,9 +108,9 @@ class MainActivity : FlutterActivity() {
             .setCategory(NotificationCompat.CATEGORY_MESSAGE)
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
             .setAutoCancel(true)
+            .setOnlyAlertOnce(true)
             .setSound(soundUri)
             .setVibrate(longArrayOf(0, 500, 200, 500, 200, 500))
-            .setDefaults(NotificationCompat.DEFAULT_ALL)
             .setContentIntent(pending)
             .build()
 

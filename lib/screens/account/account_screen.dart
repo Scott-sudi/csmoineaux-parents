@@ -169,17 +169,16 @@ class AccountScreen extends ConsumerWidget {
                         onTap: () async {
                           final push =
                               ref.read(pushNotificationServiceProvider);
-                          ref.read(inAppAlertProvider.notifier).state =
-                              const InAppAlert(
-                            title: 'Test Institut Kalunga',
-                            body: 'Si vous entendez ceci, le son fonctionne.',
-                          );
+                          ref.read(inAppAlertProvider.notifier).state = null;
                           final enabled =
                               await push.areSystemNotificationsEnabled();
                           final posted = await push.showLocalAlert(
                             title: 'Test Institut Kalunga',
                             body:
                                 'Si vous entendez ceci, le son fonctionne.',
+                            dedupeKey:
+                                'manual-test-${DateTime.now().millisecondsSinceEpoch}',
+                            showInAppBanner: false,
                           );
                           if (!context.mounted) return;
                           final msg = !enabled

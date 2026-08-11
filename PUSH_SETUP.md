@@ -1,42 +1,49 @@
 # Notifications push — Institut Kalunga Parents
 
-## Deux niveaux (important)
+## Deux modes
 
-| Situation | Son / bannière | Déjà prêt ? |
-|-----------|----------------|-------------|
-| **App ouverte** (APK Android / iPhone) | Oui — notification locale + tonalité | **Oui** (`flutter_local_notifications` + refresh ~25 s) |
-| **App fermée / écran verrouillé** | Push FCM (comme WhatsApp) | **Code prêt** — il reste Firebase + clé serveur |
+| Situation | Comment ça marche | État |
+|-----------|-------------------|------|
+| **App ouverte** | Notification système Android native + son | OK (apk récent) |
+| **App fermée / téléphone verrouillé** | **Firebase Cloud Messaging (FCM)** — comme WhatsApp | **À activer une fois** (ci-dessous) |
 
-Sur **Edge / navigateur**, pas de push système : seulement le badge après refresh.
+Sans Firebase, le téléphone **ne peut pas** être réveillé si l’app est fermée.
+Ce n’est pas un « serveur dans le téléphone » : c’est Google qui pousse le message.
 
-## Pour le push app fermée (à faire une fois)
+## Activer le push app fermée (une seule fois)
 
-### A. Firebase (toi)
-1. https://console.firebase.google.com → projet « Institut Kalunga »
-2. Ajouter app **Android** : `net.institutkalunga.parents`
-3. Télécharger `google-services.json` →  
+### 1. Firebase (toi — 10 min)
+1. Va sur https://console.firebase.google.com
+2. Crée / ouvre le projet **Institut Kalunga**
+3. Ajoute une app **Android**
+   - Package name : `net.institutkalunga.parents`
+4. Télécharge **`google-services.json`**
+5. Place-le ici :
    `mobile/kalunga_parents/android/app/google-services.json`
-4. (Plus tard iOS) app iOS même Bundle ID + `GoogleService-Info.plist` → `ios/Runner/`
-5. Cloud Messaging → **Clé serveur (Server key)**
+6. Dans Firebase → Project settings → Cloud Messaging :
+   - copie la **Server key** (ou crée une clé API Cloud Messaging)
 
-### B. Serveur o2switch
-Dans `.env` :
+### 2. Serveur o2switch
+Dans le fichier `.env` du backend :
 ```
-FCM_SERVER_KEY=ta_cle_serveur
+FCM_SERVER_KEY=ta_cle_serveur_firebase
 ```
-Puis redémarrer Passenger (`touch tmp/restart.txt`).
-
-### C. Rebuild APK
+Puis dans le Terminal cPanel :
 ```bash
-cd mobile/kalunga_parents
-flutter build apk --release
+cd ~/kalunga-school/backend && mkdir -p tmp && touch tmp/restart.txt
 ```
 
-Sans `google-services.json` / `FCM_SERVER_KEY`, l’APK marche toujours :
-présences, messages, badge — et **son si l’app est ouverte**.
-Seuls les push « téléphone éteint / app tuée » manquent.
+### 3. Rebuild APK
+Après avoir mis `google-services.json` dans le projet, republier l’APK
+(GitHub Actions ou `flutter build apk --release`).
 
-## Bibliothèques déjà ajoutées
-- `flutter_local_notifications` (son app ouverte)
-- `firebase_core` + `firebase_messaging` (push distant)
-- Backend : envoi FCM avec `"sound": "default"` + canal `kalunga_parents_alerts_v2`
+Réinstalle l’APK, ouvre l’app **une fois** (pour enregistrer le jeton FCM),
+puis ferme-la complètement et teste un message secrétariat / paiement / présence.
+
+## Déjà branché côté serveur
+- Message secrétariat publié → push FCM
+- Présence / retard → push FCM
+- Paiement enregistré → push FCM
+
+## Canal Android
+`kalunga_parents_alerts_v6` — Alertes Institut Kalunga
