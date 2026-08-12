@@ -42,3 +42,20 @@ jobs:
           generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Keep only the latest APK release
+        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          CURRENT="apk-${{ github.run_number }}"
+          gh release list --limit 50 --json tagName --jq '.[].tagName' | while read -r tag; do
+            case "$tag" in
+              apk-*)
+                if [ "$tag" != "$CURRENT" ]; then
+                  echo "Deleting old release $tag"
+                  gh release delete "$tag" --yes --cleanup-tag || true
+                fi
+                ;;
+            esac
+          done
