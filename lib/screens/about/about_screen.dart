@@ -21,50 +21,25 @@ class AboutScreen extends ConsumerWidget {
     final textSecondary =
         isDark ? const Color(0xFFA7B0A9) : const Color(0xFF757575);
 
-    final canPop = Navigator.of(context).canPop();
-
-    return DefaultTextStyle.merge(
-      style: const TextStyle(
-        decoration: TextDecoration.none,
-        decorationThickness: 0,
-      ),
-      child: ColoredBox(
-      color: pageBg,
-      child: Column(
-        children: [
-          ColoredBox(
-            color: AppColors.primary,
-            child: SizedBox(
-              height: 52,
-              width: double.infinity,
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  if (canPop)
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: IconButton(
-                        onPressed: () => Navigator.of(context).pop(),
-                        icon: const Icon(Icons.arrow_back, color: Colors.white),
-                      ),
-                    ),
-                  Text(
-                    s.aboutTitle,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w700,
-                      fontSize: 18,
-                      decoration: TextDecoration.none,
-                    ),
-                  ),
-                ],
-              ),
-            ),
+    return Scaffold(
+      backgroundColor: pageBg,
+      appBar: AppBar(
+        backgroundColor: AppColors.primary,
+        foregroundColor: Colors.white,
+        elevation: 0,
+        centerTitle: true,
+        title: Text(
+          s.aboutTitle,
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.w700,
+            fontSize: 18,
           ),
-          Expanded(
-            child: ListView(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
-              children: [
+        ),
+      ),
+      body: ListView(
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
+        children: [
                 // Bloc identité
                 _Block(
                   color: cardBg,
@@ -231,12 +206,8 @@ class AboutScreen extends ConsumerWidget {
                     ],
                   ),
                 ),
-              ],
-            ),
-          ),
         ],
       ),
-    ),
     );
   }
 
