@@ -16,7 +16,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "net.institutkalunga.parents"
+        applicationId = "com.csmoineaux.parents"
         minSdk = flutter.minSdkVersion
         targetSdk = 35
         versionCode = flutter.versionCode

@@ -6,13 +6,14 @@ sealed class ApiException implements Exception {
   final int? statusCode;
   final Map<String, dynamic>? errors;
 
+  /// Message utilisateur uniquement (jamais "ApiException(null): ...").
   @override
-  String toString() => 'ApiException($statusCode): $message';
+  String toString() => message;
 }
 
 class NetworkException extends ApiException {
   const NetworkException([
-    super.message = 'Impossible de joindre le serveur. Vérifiez votre connexion.',
+    super.message = 'Vérifiez votre connexion.',
   ]);
 }
 

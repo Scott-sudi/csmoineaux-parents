@@ -223,7 +223,7 @@ class ApiService {
       case DioExceptionType.cancel:
         return const NetworkException('Requête annulée.');
       default:
-        return NetworkException(e.message ?? 'Erreur réseau inconnue.');
+        return const NetworkException();
     }
   }
 }

@@ -6,7 +6,7 @@ import '../../constants/app_constants.dart';
 import '../../core/theme/app_colors.dart';
 import '../../providers/settings_providers.dart';
 
-/// Onglet À propos — maquette écran 4 : blocs séparés + infos Kalunga.
+/// Onglet À propos — présentation du C.S. Les Moineaux.
 class AboutScreen extends ConsumerWidget {
   const AboutScreen({super.key});
 
@@ -58,7 +58,7 @@ class AboutScreen extends ConsumerWidget {
                             color: AppColors.lightGreen,
                             alignment: Alignment.center,
                             child: const Text(
-                              'IK',
+                              AppConstants.brandFallback,
                               style: TextStyle(
                                 color: AppColors.primary,
                                 fontWeight: FontWeight.w800,

@@ -1,11 +1,11 @@
 {
-    "name": "Institut Kalunga",
-    "short_name": "Kalunga",
+    "name": "Complexe Scolaire Les Moineaux",
+    "short_name": "Les Moineaux",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#F5F7FA",
-    "theme_color": "#1B5E20",
-    "description": "Application mobile officielle des parents — Institut Kalunga.",
+    "theme_color": "#0B1F4A",
+    "description": "Application mobile officielle des parents — Complexe Scolaire Les Moineaux.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

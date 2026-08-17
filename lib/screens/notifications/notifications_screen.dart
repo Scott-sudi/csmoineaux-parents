@@ -9,6 +9,9 @@ import '../../models/notification_models.dart';
 import '../../providers/home_providers.dart';
 import '../../providers/notifications_providers.dart';
 import '../../providers/settings_providers.dart';
+import '../../utils/friendly_error.dart';
+import '../../utils/notification_sort.dart';
+import '../../utils/notification_time.dart';
 import 'notification_detail_router.dart';
 
 /// Onglet Notifications — filtres Toutes / Générales / Scolaires / Financières.
@@ -60,8 +63,12 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen>
     List<ParentNotificationItem> items,
     String key,
   ) {
-    if (key == 'toutes') return items;
-    return items.where((e) => e.filterBucket == key).toList();
+    final list = key == 'toutes'
+        ? List<ParentNotificationItem>.from(items)
+        : items.where((e) => e.filterBucket == key).toList();
+    // Même tri date pour Toutes / Générale / Scolaire / Financière.
+    sortParentNotificationsNewestFirst(list);
+    return list;
   }
 
   Future<void> _markAllAsRead(AppStrings s) async {
@@ -218,7 +225,10 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen>
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(e.toString(), textAlign: TextAlign.center),
+                Text(
+                  friendlyErrorMessage(e),
+                  textAlign: TextAlign.center,
+                ),
                 const SizedBox(height: 12),
                 ElevatedButton(
                   onPressed: () =>
@@ -362,7 +372,10 @@ class _NotificationCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 6),
                     Text(
-                      item.timestampLabel,
+                      notificationTimeLabel(
+                        item.occurredAt,
+                        item.timestampLabel,
+                      ),
                       style: TextStyle(
                         color: context.appTextSecondary.withOpacity(0.85),
                         fontSize: 11.5,

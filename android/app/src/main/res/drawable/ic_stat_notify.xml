@@ -4,11 +4,21 @@
     android:height="24dp"
     android:viewportWidth="24"
     android:viewportHeight="24">
-    <!-- Petite silhouette blanche « IK » (exigence Android barre de statut). -->
+    <!-- Silhouette blanche IK : I à gauche, K à droite (barre de statut). -->
+    <!-- I -->
     <path
         android:fillColor="#FFFFFFFF"
-        android:pathData="M4.2,4.5h3.1v6.2l4.2,-6.2h3.4l-5.1,7.1L15.2,19.5h-3.5l-3.3,-5.4v5.4H4.2z"/>
+        android:pathData="M3,3.5h4v17H3z"/>
+    <!-- K : barre verticale -->
     <path
         android:fillColor="#FFFFFFFF"
-        android:pathData="M16.2,4.5h3.6v15h-3.6z"/>
+        android:pathData="M10,3.5h4v17h-4z"/>
+    <!-- K : bras haut -->
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M13.2,11.2 L21,3.5 h-4.2 L10.8,11.2 z"/>
+    <!-- K : bras bas -->
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M13.2,12.8 L21,20.5 h-4.2 L10.8,12.8 z"/>
 </vector>

@@ -95,9 +95,9 @@ class AppStrings {
   String get idNumber =>
       _t('N° d’identification', 'ID number', 'Nambari ya kitambulisho');
   String get personalInfoHint => _t(
-        'Pour modifier ces informations, contactez le secrétariat de l’Institut Kalunga.',
-        'To update this information, contact the Institut Kalunga secretariat.',
-        'Ili kubadilisha taarifa hizi, wasiliana na sekretarieti ya Institut Kalunga.',
+        'Pour modifier ces informations, contactez le secrétariat du Complexe Scolaire Les Moineaux.',
+        'To update this information, contact the Complexe Scolaire Les Moineaux secretariat.',
+        'Ili kubadilisha taarifa hizi, wasiliana na sekretarieti ya Complexe Scolaire Les Moineaux.',
       );
 
   // —— Aide ——
@@ -148,9 +148,9 @@ class AppStrings {
   // —— Accueil ——
   String get hello => _t('Bonjour,', 'Hello,', 'Habari,');
   String get welcomeSchool => _t(
-        'Bienvenue à Institut Kalunga',
-        'Welcome to Institut Kalunga',
-        'Karibu Institut Kalunga',
+        'Bienvenue au Complexe Scolaire Les Moineaux',
+        'Welcome to Complexe Scolaire Les Moineaux',
+        'Karibu Complexe Scolaire Les Moineaux',
       );
   String get overview => _t('Vue d’ensemble', 'Overview', 'Muhtasari');
   String get children => _t('Enfants', 'Children', 'Watoto');

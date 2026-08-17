@@ -5,6 +5,7 @@ import '../../constants/app_constants.dart';
 import '../../core/theme/app_theme_colors.dart';
 import '../../models/child_models.dart';
 import '../../providers/children_providers.dart';
+import '../../utils/friendly_error.dart';
 import '../../widgets/children/child_card.dart';
 import '../../widgets/children/children_empty_state.dart';
 import 'child_attendance_screen.dart';
@@ -37,7 +38,7 @@ class ChildrenScreen extends ConsumerWidget {
           child: CircularProgressIndicator(color: context.appPrimary),
         ),
         error: (error, _) => _ErrorState(
-          message: error.toString(),
+          message: friendlyErrorMessage(error),
           onRetry: () => ref.invalidate(childrenListProvider),
         ),
         data: (children) {

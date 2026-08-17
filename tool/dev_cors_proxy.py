@@ -1,10 +1,10 @@
-"""Proxy CORS local pour Flutter Web → API Django o2switch.
+"""Proxy CORS local pour Flutter Web → API Django locale.
 
 Usage :
   python tool/dev_cors_proxy.py
 
-Puis lancer Flutter sur Edge. Les appels /api/v1/* passent par
-http://127.0.0.1:8788 (sans blocage CORS navigateur).
+Les appels passent par http://127.0.0.1:8788 vers Django local :8000.
+L'app Flutter n'a plus besoin de ce proxy si elle vise directement :8000.
 """
 
 from __future__ import annotations
@@ -13,7 +13,8 @@ import http.client
 import json
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
-UPSTREAM = "institut-kalunga.net.susc3383.odns.fr"
+UPSTREAM_HOST = "127.0.0.1"
+UPSTREAM_PORT = 8000
 LISTEN_HOST = "127.0.0.1"
 LISTEN_PORT = 8788
 
@@ -62,7 +63,7 @@ class CorsProxyHandler(BaseHTTPRequestHandler):
         length = int(self.headers.get("Content-Length", "0") or 0)
         body = self.rfile.read(length) if length else None
 
-        conn = http.client.HTTPConnection(UPSTREAM, timeout=45)
+        conn = http.client.HTTPConnection(UPSTREAM_HOST, UPSTREAM_PORT, timeout=45)
         headers = {
             "Accept": self.headers.get("Accept", "application/json"),
             "Content-Type": self.headers.get("Content-Type", "application/json"),
@@ -141,7 +142,7 @@ class CorsProxyHandler(BaseHTTPRequestHandler):
 def main() -> None:
     server = ThreadingHTTPServer((LISTEN_HOST, LISTEN_PORT), CorsProxyHandler)
     print(f"Proxy CORS prêt : http://{LISTEN_HOST}:{LISTEN_PORT}")
-    print(f"Upstream       : http://{UPSTREAM}")
+    print(f"Upstream       : http://{UPSTREAM_HOST}:{UPSTREAM_PORT}")
     print("Ctrl+C pour arrêter.")
     server.serve_forever()
 

@@ -65,6 +65,7 @@ class RecentActivity extends Equatable {
     this.body = '',
     this.source = '',
     this.sourceId = '',
+    this.occurredAt,
   });
 
   final String id;
@@ -75,6 +76,7 @@ class RecentActivity extends Equatable {
   final String body;
   final String source;
   final String sourceId;
+  final DateTime? occurredAt;
 
   IconData get icon {
     switch (type) {
@@ -90,6 +92,11 @@ class RecentActivity extends Equatable {
   }
 
   factory RecentActivity.fromJson(Map<String, dynamic> json) {
+    DateTime? occurred;
+    final rawOccurred = json['occurred_at']?.toString();
+    if (rawOccurred != null && rawOccurred.isNotEmpty) {
+      occurred = DateTime.tryParse(rawOccurred)?.toLocal();
+    }
     return RecentActivity(
       id: json['id']?.toString() ?? '',
       title: json['title']?.toString() ?? '',
@@ -99,6 +106,7 @@ class RecentActivity extends Equatable {
       body: json['body']?.toString() ?? '',
       source: json['source']?.toString() ?? '',
       sourceId: json['source_id']?.toString() ?? '',
+      occurredAt: occurred,
     );
   }
 
@@ -116,8 +124,17 @@ class RecentActivity extends Equatable {
   }
 
   @override
-  List<Object?> get props =>
-      [id, title, subtitle, timestampLabel, type, body, source, sourceId];
+  List<Object?> get props => [
+        id,
+        title,
+        subtitle,
+        timestampLabel,
+        type,
+        body,
+        source,
+        sourceId,
+        occurredAt,
+      ];
 }
 
 /// Agrégat Accueil (parent connecté + vue d'ensemble + activités).

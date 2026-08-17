@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../constants/app_constants.dart';
 import '../core/theme/app_theme_colors.dart';
 import '../services/app_permissions_service.dart';
 import '../services/push_notification_service.dart';
@@ -42,7 +43,7 @@ class _StartupPermissionsGateState
           return AlertDialog(
             title: const Text('Autorisations'),
             content: const Text(
-              'Pour bien fonctionner, Institut Kalunga a besoin d’accéder aux '
+              'Pour bien fonctionner, ${AppConstants.appName} a besoin d’accéder aux '
               'notifications (alertes école), à la caméra et aux photos/fichiers '
               '(photo de profil).\n\n'
               'Autorisez ces accès sur les écrans suivants.',

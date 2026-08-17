@@ -46,4 +46,4 @@ puis ferme-la complètement et teste un message secrétariat / paiement / prése
 - Paiement enregistré → push FCM
 
 ## Canal Android
-`kalunga_parents_alerts_v6` — Alertes Institut Kalunga
+`kalunga_parents_alerts_v8` — Alertes Institut Kalunga (icône statut « IK »)

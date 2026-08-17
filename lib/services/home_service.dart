@@ -2,6 +2,7 @@ import '../constants/api_endpoints.dart';
 import '../core/errors/api_exception.dart';
 import '../core/network/api_service.dart';
 import '../models/home_models.dart';
+import '../utils/notification_sort.dart';
 
 /// Données Accueil parents (API Django).
 class HomeService {
@@ -41,6 +42,7 @@ class HomeService {
                 ),
               )
               .toList();
+          sortRecentActivitiesNewestFirst(activities);
           return HomeDashboard(
             parentDisplayName: map['display_name']?.toString() ?? '',
             overview: overview,

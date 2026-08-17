@@ -8,7 +8,7 @@
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES"/>
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32"/>
     <application
-        android:label="Institut Kalunga"
+        android:label="C.S. Les Moineaux"
         android:name=".KalungaParentsApplication"
         android:icon="@mipmap/ic_launcher"
         android:usesCleartextTraffic="true">
@@ -36,7 +36,7 @@
         <!-- Affichage système app fermée : canal + icône IK + couleur école. -->
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_channel_id"
-            android:value="kalunga_parents_alerts_v6" />
+            android:value="kalunga_parents_alerts_v8" />
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_icon"
             android:resource="@drawable/ic_stat_notify" />

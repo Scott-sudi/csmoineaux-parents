@@ -141,7 +141,7 @@ class _LoginPhoneScreenState extends ConsumerState<LoginPhoneScreen> {
                     const SizedBox(height: 8),
                     const Text(
                       'Saisissez le téléphone et le numéro d’identification '
-                      'enregistrés auprès de l’Institut Kalunga.',
+                      'enregistrés auprès du Complexe Scolaire Les Moineaux.',
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 14,
@@ -267,7 +267,7 @@ class _BrandHeader extends StatelessWidget {
                 color: AppColors.primary,
                 child: Center(
                   child: Text(
-                    'IK',
+                    AppConstants.brandFallback,
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 28,

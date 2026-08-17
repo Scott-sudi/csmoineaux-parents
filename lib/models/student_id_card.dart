@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 
 import '../config/api_config.dart';
+import '../constants/app_constants.dart';
 
 /// Carte d'élève (données secrétariat / PNG web).
 class StudentIdCard extends Equatable {
@@ -17,10 +18,10 @@ class StudentIdCard extends Equatable {
     this.previewUrl,
     this.photoUrl,
     this.qrImageUrl,
-    this.schoolName = 'Institut Kalunga',
-    this.schoolSlogan = 'La Source du Savoir',
-    this.schoolCode = '71041',
-    this.schoolCity = 'Likasi',
+    this.schoolName = AppConstants.appName,
+    this.schoolSlogan = AppConstants.appTagline,
+    this.schoolCode = AppConstants.schoolCode,
+    this.schoolCity = AppConstants.schoolCity,
     this.isBlocked = false,
   });
 
@@ -56,10 +57,10 @@ class StudentIdCard extends Equatable {
       previewUrl: ApiConfig.resolveMediaUrl(json['preview_url']?.toString()),
       photoUrl: ApiConfig.resolveMediaUrl(json['photo_url']?.toString()),
       qrImageUrl: ApiConfig.resolveMediaUrl(json['qr_image_url']?.toString()),
-      schoolName: json['school_name']?.toString() ?? 'Institut Kalunga',
-      schoolSlogan: json['school_slogan']?.toString() ?? 'La Source du Savoir',
-      schoolCode: json['school_code']?.toString() ?? '71041',
-      schoolCity: json['school_city']?.toString() ?? 'Likasi',
+      schoolName: json['school_name']?.toString() ?? AppConstants.appName,
+      schoolSlogan: json['school_slogan']?.toString() ?? AppConstants.appTagline,
+      schoolCode: json['school_code']?.toString() ?? AppConstants.schoolCode,
+      schoolCity: json['school_city']?.toString() ?? AppConstants.schoolCity,
       isBlocked: json['is_blocked'] as bool? ?? false,
     );
   }

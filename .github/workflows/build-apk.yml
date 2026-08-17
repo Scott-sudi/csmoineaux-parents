@@ -29,15 +29,15 @@ jobs:
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: kalunga-parents-apk
+          name: csmoineaux-parents-apk
           path: build/app/outputs/flutter-apk/app-release.apk
 
       - name: Create GitHub Release
         if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: apk-${{ github.run_number }}
-          name: APK Parents #${{ github.run_number }}
+          tag_name: moineaux-apk-${{ github.run_number }}
+          name: C.S. Les Moineaux — APK #${{ github.run_number }}
           files: build/app/outputs/flutter-apk/app-release.apk
           generate_release_notes: true
         env:
@@ -48,10 +48,10 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          CURRENT="apk-${{ github.run_number }}"
+          CURRENT="moineaux-apk-${{ github.run_number }}"
           gh release list --limit 50 --json tagName --jq '.[].tagName' | while read -r tag; do
             case "$tag" in
-              apk-*)
+              moineaux-apk-*)
                 if [ "$tag" != "$CURRENT" ]; then
                   echo "Deleting old release $tag"
                   gh release delete "$tag" --yes --cleanup-tag || true

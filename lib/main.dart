@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'constants/app_constants.dart';
 import 'core/storage/secure_storage_service.dart';
 import 'core/theme/app_theme.dart';
 import 'firebase_options.dart';
@@ -42,7 +43,7 @@ Future<void> main() async {
   );
 }
 
-/// Application mobile parents — Institut Kalunga.
+/// Application mobile parents — C.S. Les Moineaux.
 class KalungaParentsApp extends ConsumerWidget {
   const KalungaParentsApp({super.key});
 
@@ -52,7 +53,7 @@ class KalungaParentsApp extends ConsumerWidget {
     final language = ref.watch(appLanguageProvider);
 
     return MaterialApp(
-      title: 'Institut Kalunga',
+      title: AppConstants.appName,
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light,
       darkTheme: AppTheme.dark,

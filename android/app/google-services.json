@@ -1,21 +1,21 @@
 {
   "project_info": {
-    "project_number": "897069046002",
-    "project_id": "institut-kalunga",
-    "storage_bucket": "institut-kalunga.firebasestorage.app"
+    "project_number": "15023943461",
+    "project_id": "cs-moineaux",
+    "storage_bucket": "cs-moineaux.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:897069046002:android:783f48e8ef7405e7a3986b",
+        "mobilesdk_app_id": "1:15023943461:android:1c1c008d9cca0d471a74cc",
         "android_client_info": {
-          "package_name": "net.institutkalunga.parents"
+          "package_name": "com.csmoineaux.parents"
         }
       },
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyDhlCbF8dxBYI59CsdM8kno2flvuRqNzoY"
+          "current_key": "AIzaSyAZ-pNXnln777ANSzihTz8Nm7_Qy45MDVs"
         }
       ],
       "services": {

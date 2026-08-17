@@ -2,6 +2,7 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
 
 import '../core/theme/app_colors.dart';
+import '../utils/notification_sort.dart';
 import 'home_models.dart';
 
 /// Élément de l'inbox Notifications (finance / secrétariat / discipline).
@@ -120,6 +121,7 @@ class ParentNotificationItem extends Equatable {
         body: body,
         source: source,
         sourceId: sourceId,
+        occurredAt: occurredAt,
       );
 
   /// Depuis une activité Accueil (même source que l’inbox Notifications).
@@ -133,6 +135,7 @@ class ParentNotificationItem extends Equatable {
       body: activity.body.isNotEmpty ? activity.body : activity.subtitle,
       source: activity.source,
       sourceId: activity.sourceId,
+      occurredAt: activity.occurredAt,
     );
   }
 
@@ -189,11 +192,7 @@ class ParentNotificationsResult extends Equatable {
         )
         .toList();
     // Filet de sécurité : plus récent en haut (jamais par titre).
-    items.sort((a, b) {
-      final aAt = a.occurredAt ?? DateTime.fromMillisecondsSinceEpoch(0);
-      final bAt = b.occurredAt ?? DateTime.fromMillisecondsSinceEpoch(0);
-      return bAt.compareTo(aAt);
-    });
+    sortParentNotificationsNewestFirst(items);
     return ParentNotificationsResult(
       unreadCount: int.tryParse(json['unread_count']?.toString() ?? '') ?? 0,
       totalCount: int.tryParse(json['total_count']?.toString() ?? '') ?? 0,

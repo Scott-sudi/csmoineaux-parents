@@ -1,78 +1,83 @@
 /// Configuration centralisée des URLs API Django.
 ///
 /// Ne jamais hardcoder d'URL dans les écrans ou widgets.
-/// Modifier [environment] pour basculer entre production et développement.
+/// Pour basculer LOCAL → nouvelle production, changez uniquement [environment]
+/// (et éventuellement [productionHost] le jour du nouvel hébergement).
 library;
 
 import 'package:flutter/foundation.dart';
 
 /// Environnement d'exécution de l'API.
 enum ApiEnvironment {
-  /// Domaine officiel HTTPS (DNS / SSL requis).
-  production,
+  /// Django sur cette machine (aucune connexion à l'ancien serveur).
+  local,
 
-  /// URL temporaire o2switch tant que le DNS public n'est pas propagé.
-  development,
+  /// Nouvelle API de production — à renseigner plus tard.
+  production,
 }
 
-/// Point d'entrée unique pour l'adresse de l'API REST Kalunga.
+/// Point d'entrée unique pour l'adresse de l'API REST.
 abstract final class ApiConfig {
   /// Environnement actif.
   ///
-  /// DNS public `institut-kalunga.net` non propagé : on utilise l'URL
-  /// temporaire o2switch tant qu'elle reste le seul accès fonctionnel.
-  /// Remettre [ApiEnvironment.production] dès que le domaine officiel répond.
-  static const ApiEnvironment environment = ApiEnvironment.development;
+  /// Passez à [ApiEnvironment.production] uniquement quand la nouvelle
+  /// API hébergée sera prête. Ne jamais remettre l'ancien domaine Kalunga.
+  static const ApiEnvironment environment = ApiEnvironment.production;
 
-  /// Domaine public officiel.
-  static const String productionHost = 'https://institut-kalunga.net';
+  /// Surcharge optionnelle : `flutter run --dart-define=API_HOST=http://192.168.1.71:8000`
+  static const String apiHostOverride = String.fromEnvironment('API_HOST');
 
-  /// Hôte temporaire o2switch (HTTP) — utile uniquement en phase DNS.
-  static const String developmentHost =
-      'http://institut-kalunga.net.susc3383.odns.fr';
+  /// URL Django locale (sans slash final).
+  ///
+  /// - Navigateur / Windows : 127.0.0.1
+  /// - Émulateur Android : 10.0.2.2
+  /// - Téléphone sur le même Wi-Fi : IP LAN du PC
+  static const String localLoopbackHost = 'http://127.0.0.1:8000';
+  static const String androidEmulatorHost = 'http://10.0.2.2:8000';
+  static const String lanHost = 'http://192.168.1.71:8000';
 
-  /// Proxy local anti-CORS pour Flutter Web (`tool/dev_cors_proxy.py`).
-  static const String webDevProxyHost = 'http://127.0.0.1:8788';
+  /// Production Moineaux (HTTP temporaire o2switch tant que csmoineaux.com n'est pas payé).
+  static const String productionHost = 'http://csmoineauxcom.susc3383.odns.fr';
 
   /// Préfixe versionné de l'API Django.
   static const String apiPrefix = '/api/v1';
 
   /// Hôte selon l'environnement (sans slash final).
   static String get host {
+    if (apiHostOverride.trim().isNotEmpty) {
+      return apiHostOverride.trim().replaceAll(RegExp(r'/$'), '');
+    }
     switch (environment) {
       case ApiEnvironment.production:
         return productionHost;
-      case ApiEnvironment.development:
-        // Edge/Chrome bloquent les appels cross-origin vers o2switch tant que
-        // CORS n'est pas déployé sur le serveur → proxy local sur le web.
-        if (kIsWeb) return webDevProxyHost;
-        return developmentHost;
+      case ApiEnvironment.local:
+        if (kIsWeb) return localLoopbackHost;
+        if (defaultTargetPlatform == TargetPlatform.android) {
+          return androidEmulatorHost;
+        }
+        return localLoopbackHost;
     }
   }
 
-  /// Base URL complète de l'API (ex. `https://…/api/v1`).
+  /// Base URL complète de l'API (ex. `http://127.0.0.1:8000/api/v1`).
   static String get baseUrl => '$host$apiPrefix';
 
-  /// Réécrit les URLs média pour Flutter Web (CORS via proxy local).
+  /// Réécrit les URLs média pour Flutter Web (même hôte local).
   static String? resolveMediaUrl(String? url) {
     if (url == null || url.trim().isEmpty) return null;
-    if (!kIsWeb || environment != ApiEnvironment.development) {
+    if (!kIsWeb || environment != ApiEnvironment.local) {
       return url;
     }
     final uri = Uri.tryParse(url);
     if (uri == null || !uri.hasScheme) return url;
-    final host = uri.host.toLowerCase();
-    final isKalungaHost = host.contains('institut-kalunga') ||
-        host.contains('odns.fr') ||
-        host == Uri.parse(developmentHost).host;
-    if (!isKalungaHost) return url;
-    return Uri(
-      scheme: 'http',
-      host: '127.0.0.1',
-      port: 8788,
-      path: uri.path,
-      query: uri.hasQuery ? uri.query : null,
-    ).toString();
+    final local = Uri.parse(host);
+    if (uri.host == local.host ||
+        uri.host == '127.0.0.1' ||
+        uri.host == 'localhost' ||
+        uri.host == '10.0.2.2') {
+      return url;
+    }
+    return url;
   }
 
   /// Timeouts réseau (secondes).

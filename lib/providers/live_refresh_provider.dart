@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../constants/app_constants.dart';
 import '../services/push_notification_service.dart';
 import 'auth_providers.dart';
 import 'home_providers.dart';
@@ -93,7 +94,7 @@ class LiveRefreshController extends StateNotifier<int>
       _alertedIds.addAll(toAlert);
 
       final title =
-          newest.title.isNotEmpty ? newest.title : 'Institut Kalunga';
+          newest.title.isNotEmpty ? newest.title : AppConstants.appName;
       final body = newest.subtitle.isNotEmpty
           ? newest.subtitle
           : 'Vous avez une nouvelle notification.';

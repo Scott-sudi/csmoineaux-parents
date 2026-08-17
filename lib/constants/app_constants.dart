@@ -1,42 +1,44 @@
-/// Constantes métier / UI partagées.
+/// Constantes métier / UI partagées — C.S. Les Moineaux.
 abstract final class AppConstants {
-  static const String appName = 'Institut Kalunga';
-  static const String appTagline = 'La Source du Savoir';
-  /// Slogan maquette À propos (= tagline école).
-  static const String schoolMotto = 'La Source du Savoir';
-  static const String welcomeSubtitle = 'Bienvenue à Institut Kalunga';
+  static const String appName = 'Complexe Scolaire Les Moineaux';
+  static const String appTagline = 'Fondé en 2016';
+  static const String schoolMotto = 'Fondé en 2016';
+  static const String welcomeSubtitle = 'Bienvenue au Complexe Scolaire Les Moineaux';
+  static const String brandFallback = 'CS';
 
-  /// Texte présentation (maquette À propos).
+  /// Texte présentation (écran À propos).
   static const String schoolPresentation =
-      "L'Institut Kalunga est un établissement scolaire privé dédié à la "
-      'formation intégrale des élèves dans un environnement propice à '
-      "l'apprentissage, à la discipline et à l'épanouissement.";
+      "Le Complexe Scolaire Les Moineaux, fondé en 2016, est un "
+      'établissement scolaire privé dédié à la formation intégrale des '
+      "élèves dans un environnement propice à l'apprentissage, à la "
+      "discipline et à l'épanouissement.";
 
   /// Options organisées (fiche identification établissement).
   static const List<String> schoolOptions = [
-    'Scientifique option : science',
+    'Mathématique-Physique',
+    'Chimie-Biologie',
+    'Littéraire (ex-Latin-Philo)',
     'Pédagogie générale',
-    'Commerciale & gestion',
-    'Mécanique générale',
-    'Electricité',
+    'Sciences sociales',
+    'Électricité',
+    'Mécanique générale ou automobile',
+    'Commerciale et administrative',
+    'Agriculture générale / vétérinaire',
+    'Nutrition / coupe et couture',
   ];
 
-  /// Coordonnées réelles — fiche identification Institut Kalunga.
-  static const String schoolCity = 'Likasi';
-  static const String schoolAddress =
-      '609, Avenue Kamanyola, centre-ville, Likasi';
-  static const String schoolBp = 'BP 74';
-  static const String schoolCode = '71041';
-  static const String schoolRegime = 'Privé agréé';
-  static const String schoolPhonePrimary = '+243 997 039 898';
-  static const String schoolPhoneSecondary = '0840287002';
-  static const String schoolPhone =
-      '+243 997 039 898 / 0840287002';
+  static const String schoolCity = '';
+  static const String schoolAddress = '';
+  static const String schoolBp = '';
+  static const String schoolCode = '';
+  static const String schoolRegime = 'Privé';
+  static const String schoolPhonePrimary = '';
+  static const String schoolPhoneSecondary = '';
+  static const String schoolPhone = '';
   static const String schoolHours = 'Lun – Ven · Avant et Après-midi';
 
   static const String logoAsset = 'assets/branding/logo.png';
 
-  /// Rayons conformes à la maquette.
   static const double radiusLarge = 16;
   static const double radiusMedium = 12;
   static const double radiusSmall = 8;

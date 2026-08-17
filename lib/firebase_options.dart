@@ -1,4 +1,4 @@
-// Généré à partir de android/app/google-services.json (projet institut-kalunga).
+// Généré à partir de android/app/google-services.json (projet CS Moineaux).
 import 'package:firebase_core/firebase_core.dart' show FirebaseOptions;
 import 'package:flutter/foundation.dart'
     show defaultTargetPlatform, kIsWeb, TargetPlatform;
@@ -21,10 +21,10 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyDhlCbF8dxBYI59CsdM8kno2flvuRqNzoY',
-    appId: '1:897069046002:android:783f48e8ef7405e7a3986b',
-    messagingSenderId: '897069046002',
-    projectId: 'institut-kalunga',
-    storageBucket: 'institut-kalunga.firebasestorage.app',
+    apiKey: 'AIzaSyAZ-pNXnln777ANSzihTz8Nm7_Qy45MDVs',
+    appId: '1:15023943461:android:1c1c008d9cca0d471a74cc',
+    messagingSenderId: '15023943461',
+    projectId: 'cs-moineaux',
+    storageBucket: 'cs-moineaux.firebasestorage.app',
   );
 }

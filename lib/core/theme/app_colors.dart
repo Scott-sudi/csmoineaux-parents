@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 
-/// Palette fidèle à la maquette Accueil (Material 3 / Institut Kalunga).
+/// Palette fidèle au blason du C.S. Les Moineaux (marine / or).
 abstract final class AppColors {
-  static const Color primary = Color(0xFF1B5E20);
-  static const Color primaryLight = Color(0xFF2E7D32);
-  static const Color accent = Color(0xFF43A047);
+  static const Color primary = Color(0xFF0B1F4A);
+  static const Color primaryLight = Color(0xFF14306E);
+  static const Color accent = Color(0xFFC9A227);
 
-  /// Aligné aussi sur le web (`--color-primary: #0d5a22`) pour cohérence marque.
-  static const Color brandWeb = Color(0xFF0D5A22);
+  /// Aligné aussi sur le web (`--color-primary: #0b1f4a`) pour cohérence marque.
+  static const Color brandWeb = Color(0xFF0B1F4A);
 
   static const Color background = Color(0xFFF5F7FA);
   static const Color card = Color(0xFFFFFFFF);
@@ -24,7 +24,7 @@ abstract final class AppColors {
   static const Color activityMeeting = Color(0xFFE65100);
   static const Color activityFees = Color(0xFF1565C0);
 
-  static const Color lightGreen = Color(0xFFEBF5E9);
+  static const Color lightGreen = Color(0xFFE8EEF7);
   static const Color inactiveBadge = Color(0xFF9E9E9E);
   static const Color inactiveBadgeBg = Color(0xFFEEEEEE);
 

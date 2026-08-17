@@ -160,7 +160,7 @@ class _FlutterIdCard extends StatelessWidget {
                       color: AppColors.lightGreen,
                       alignment: Alignment.center,
                       child: Text(
-                        'IK',
+                        AppConstants.brandFallback,
                         style: TextStyle(
                           color: context.appPrimary,
                           fontWeight: FontWeight.w800,

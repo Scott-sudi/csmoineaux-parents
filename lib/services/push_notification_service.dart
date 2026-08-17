@@ -11,6 +11,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../constants/api_endpoints.dart';
+import '../constants/app_constants.dart';
 import '../core/network/api_service.dart';
 import '../firebase_options.dart';
 import '../providers/auth_providers.dart';
@@ -19,8 +20,8 @@ import '../providers/home_providers.dart';
 import '../providers/notifications_providers.dart';
 
 /// Canal Android — doit matcher MainActivity.kt / KalungaParentsApplication.
-const kParentsAlertChannelId = 'kalunga_parents_alerts_v6';
-const kParentsAlertChannelName = 'Alertes Institut Kalunga';
+const kParentsAlertChannelId = 'kalunga_parents_alerts_v8';
+const kParentsAlertChannelName = 'Alertes C.S. Les Moineaux';
 const _kNativeAlertsChannel = 'net.institutkalunga.parents/alerts';
 
 class InAppAlert {
@@ -179,7 +180,7 @@ class PushNotificationService {
     FirebaseMessaging.onMessage.listen((RemoteMessage message) async {
       final title = message.notification?.title ??
           message.data['title']?.toString() ??
-          'Institut Kalunga';
+          AppConstants.appName;
       final body = message.notification?.body ??
           message.data['body']?.toString() ??
           'Vous avez une nouvelle notification.';
@@ -226,12 +227,12 @@ class PushNotificationService {
       vibrationPattern: vibration,
       category: AndroidNotificationCategory.message,
       visibility: NotificationVisibility.public,
-      ticker: 'Alerte Institut Kalunga',
+      ticker: 'Alerte C.S. Les Moineaux',
       styleInformation: BigTextStyleInformation(body, contentTitle: title),
       audioAttributesUsage: AudioAttributesUsage.notificationRingtone,
       icon: icon ?? '@drawable/ic_stat_notify',
       largeIcon: const DrawableResourceAndroidBitmap('ic_notification_large'),
-      color: const Color(0xFF2E7D32),
+      color: const Color(0xFF0B1F4A),
       channelShowBadge: true,
       onlyAlertOnce: false,
       silent: false,

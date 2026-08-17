@@ -8,7 +8,10 @@ import '../../models/home_models.dart';
 import '../../models/notification_models.dart';
 import '../../providers/auth_providers.dart';
 import '../../providers/home_providers.dart';
+import '../../providers/notifications_providers.dart';
 import '../../providers/settings_providers.dart';
+import '../../utils/friendly_error.dart';
+import '../../utils/notification_sort.dart';
 import '../../widgets/home/activity_item.dart';
 import '../../widgets/home/home_header.dart';
 import '../../widgets/home/overview_card.dart';
@@ -23,9 +26,31 @@ class HomeScreen extends ConsumerWidget {
 
   final VoidCallback? onOpenNotifications;
 
+  /// Activités récentes = top 3 de la même inbox triée que « Toutes ».
+  List<RecentActivity> _recentActivities(
+    HomeDashboard dashboard,
+    AsyncValue<ParentNotificationsResult> inbox,
+  ) {
+    final fromInbox = inbox.maybeWhen(
+      data: (result) {
+        final items = List<ParentNotificationItem>.from(result.items);
+        sortParentNotificationsNewestFirst(items);
+        return items.take(3).map((e) => e.asActivity).toList();
+      },
+      orElse: () => null,
+    );
+    if (fromInbox != null && fromInbox.isNotEmpty) {
+      return fromInbox;
+    }
+    final fallback = List<RecentActivity>.from(dashboard.activities);
+    sortRecentActivitiesNewestFirst(fallback);
+    return fallback.take(3).toList();
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final asyncDashboard = ref.watch(homeDashboardProvider);
+    final asyncInbox = ref.watch(parentNotificationsProvider);
     final session = ref.watch(authSessionProvider);
     final s = ref.watch(appStringsProvider);
     final sessionName = switch (session) {
@@ -40,12 +65,16 @@ class HomeScreen extends ConsumerWidget {
           child: CircularProgressIndicator(color: context.appPrimary),
         ),
         error: (error, _) => _ErrorView(
-          message: error.toString(),
+          message: friendlyErrorMessage(error),
           retryLabel: s.retry,
-          onRetry: () => ref.invalidate(homeDashboardProvider),
+          onRetry: () {
+            ref.invalidate(homeDashboardProvider);
+            ref.invalidate(parentNotificationsProvider);
+          },
         ),
         data: (dashboard) => _HomeBody(
           dashboard: dashboard,
+          recentActivities: _recentActivities(dashboard, asyncInbox),
           greetingName: sessionName.isNotEmpty
               ? sessionName
               : dashboard.parentDisplayName,
@@ -67,7 +96,11 @@ class HomeScreen extends ConsumerWidget {
           emptyActivities: s.noRecentActivity,
           onRefresh: () async {
             ref.invalidate(homeDashboardProvider);
-            await ref.read(homeDashboardProvider.future);
+            ref.invalidate(parentNotificationsProvider);
+            await Future.wait([
+              ref.read(homeDashboardProvider.future),
+              ref.read(parentNotificationsProvider.future),
+            ]);
           },
         ),
       ),
@@ -78,6 +111,7 @@ class HomeScreen extends ConsumerWidget {
 class _HomeBody extends StatelessWidget {
   const _HomeBody({
     required this.dashboard,
+    required this.recentActivities,
     required this.greetingName,
     required this.notificationCount,
     required this.onRefresh,
@@ -96,6 +130,7 @@ class _HomeBody extends StatelessWidget {
   });
 
   final HomeDashboard dashboard;
+  final List<RecentActivity> recentActivities;
   final String greetingName;
   final int notificationCount;
   final Future<void> Function() onRefresh;
@@ -187,7 +222,7 @@ class _HomeBody extends StatelessWidget {
             ),
           ),
           const SliverToBoxAdapter(child: SizedBox(height: 8)),
-          if (dashboard.activities.isEmpty)
+          if (recentActivities.isEmpty)
             SliverPadding(
               padding: const EdgeInsets.fromLTRB(
                 AppConstants.pagePadding,
@@ -217,12 +252,10 @@ class _HomeBody extends StatelessWidget {
                 24,
               ),
               sliver: SliverList.separated(
-                itemCount: dashboard.activities.length > 3
-                    ? 3
-                    : dashboard.activities.length,
+                itemCount: recentActivities.length,
                 separatorBuilder: (_, __) => const SizedBox(height: 10),
                 itemBuilder: (context, index) {
-                  final activity = dashboard.activities[index];
+                  final activity = recentActivities[index];
                   return ActivityItem(
                     activity: activity,
                     onTap: () => openNotificationDetail(

@@ -44,7 +44,7 @@ class KalungaParentsApplication : Application() {
     }
 
     companion object {
-        const val CHANNEL_ID = "kalunga_parents_alerts_v6"
+        const val CHANNEL_ID = "kalunga_parents_alerts_v8"
         const val CHANNEL_NAME = "Alertes Institut Kalunga"
 
         @Volatile
