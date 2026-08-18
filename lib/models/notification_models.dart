@@ -48,14 +48,19 @@ class ParentNotificationItem extends Equatable {
   String get filterBucket {
     switch (source) {
       case 'finance_payment':
+      case 'finance_fee':
         return 'financieres';
       case 'discipline_summons':
       case 'discipline_incident':
       case 'discipline_attendance':
-        // Présence, convocations, incidents → onglet Scolaires.
+      case 'discipline_measure':
+      case 'discipline_exit':
         return 'scolaires';
       case 'secretariat_communication':
         return type == ActivityType.bulletin ? 'scolaires' : 'generales';
+      case 'secretariat_transfer':
+      case 'secretariat_enrollment':
+        return 'scolaires';
       default:
         if (source.startsWith('discipline_')) return 'scolaires';
         if (type == ActivityType.fees) return 'financieres';
@@ -87,13 +92,22 @@ class ParentNotificationItem extends Equatable {
   IconData get icon {
     switch (source) {
       case 'finance_payment':
+      case 'finance_fee':
         return Icons.check_circle_outline;
       case 'discipline_summons':
         return Icons.campaign_outlined;
       case 'discipline_incident':
         return Icons.warning_amber_rounded;
+      case 'discipline_measure':
+        return Icons.gavel_outlined;
       case 'discipline_attendance':
         return Icons.how_to_reg_outlined;
+      case 'discipline_exit':
+        return Icons.logout_outlined;
+      case 'secretariat_transfer':
+        return Icons.swap_horiz_outlined;
+      case 'secretariat_enrollment':
+        return Icons.school_outlined;
       case 'secretariat_communication':
         return type == ActivityType.bulletin
             ? Icons.description_outlined

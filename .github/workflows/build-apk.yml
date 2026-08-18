@@ -23,6 +23,50 @@ jobs:
       - name: Pub get
         run: flutter pub get
 
+      - name: Prepare Moineaux icons (MN + logo école)
+        run: |
+          python3 -m pip install --quiet pillow
+          python3 <<'PY'
+          from pathlib import Path
+          from PIL import Image
+
+          logo = Path("assets/branding/logo.png")
+          if not logo.exists():
+              raise SystemExit(f"Missing {logo} — logo Moineaux requis pour les notifications")
+
+          def crop_square(im):
+              w, h = im.size
+              side = min(w, h)
+              left = (w - side) // 2
+              top = (h - side) // 2
+              return im.crop((left, top, left + side, top + side))
+
+          im = crop_square(Image.open(logo).convert("RGBA"))
+
+          res = Path("android/app/src/main/res")
+          drawable = res / "drawable"
+          drawable.mkdir(parents=True, exist_ok=True)
+          nodpi = res / "drawable-nodpi"
+          nodpi.mkdir(parents=True, exist_ok=True)
+          im.resize((512, 512), Image.Resampling.LANCZOS).save(drawable / "ic_notification_large.png")
+          im.resize((512, 512), Image.Resampling.LANCZOS).save(nodpi / "ic_notification_large.png")
+          im.resize((192, 192), Image.Resampling.LANCZOS).save(drawable / "ic_notification_app.png")
+          im.resize((192, 192), Image.Resampling.LANCZOS).save(nodpi / "ic_notification_app.png")
+
+          for folder, px in {
+              "mipmap-mdpi": 48,
+              "mipmap-hdpi": 72,
+              "mipmap-xhdpi": 96,
+              "mipmap-xxhdpi": 144,
+              "mipmap-xxxhdpi": 192,
+          }.items():
+              out_dir = res / folder
+              out_dir.mkdir(parents=True, exist_ok=True)
+              im.resize((px, px), Image.Resampling.LANCZOS).save(out_dir / "ic_launcher.png")
+
+          print("Moineaux notification + launcher icons generated from", logo)
+          PY
+
       - name: Build release APK
         run: flutter build apk --release
 

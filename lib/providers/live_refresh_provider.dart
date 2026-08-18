@@ -4,12 +4,18 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../constants/app_constants.dart';
+import '../models/notification_models.dart';
 import '../services/push_notification_service.dart';
 import 'auth_providers.dart';
 import 'home_providers.dart';
 import 'notifications_providers.dart';
 
 const _liveRefreshInterval = Duration(seconds: 8);
+
+String _alertFingerprint(ParentNotificationItem item) {
+  final occurred = item.occurredAt?.millisecondsSinceEpoch ?? 0;
+  return '${item.source}:${item.resolvedSourceId}|${item.title}|${item.subtitle}|$occurred';
+}
 
 /// Garde Accueil + Notifications à jour et déclenche **une** alerte système.
 class LiveRefreshController extends StateNotifier<int>
@@ -25,8 +31,8 @@ class LiveRefreshController extends StateNotifier<int>
   final Ref _ref;
   Timer? _timer;
   ProviderSubscription<AuthSessionState>? _authSub;
-  Set<String>? _knownIds;
-  final Set<String> _alertedIds = {};
+  Set<String>? _knownFingerprints;
+  final Set<String> _alertedFingerprints = {};
   bool _refreshing = false;
   bool _baselineReady = false;
 
@@ -36,8 +42,8 @@ class LiveRefreshController extends StateNotifier<int>
       unawaited(refreshNow());
     } else {
       _stop();
-      _knownIds = null;
-      _alertedIds.clear();
+      _knownFingerprints = null;
+      _alertedFingerprints.clear();
       _baselineReady = false;
     }
   }
@@ -69,29 +75,30 @@ class LiveRefreshController extends StateNotifier<int>
       } catch (_) {}
 
       final inbox = await _ref.read(parentNotificationsProvider.future);
-      final ids =
-          inbox.items.map((e) => e.id).where((id) => id.isNotEmpty).toSet();
+      final fingerprints = inbox.items
+          .map(_alertFingerprint)
+          .where((id) => id.isNotEmpty)
+          .toSet();
 
-      final prevIds = _knownIds;
-      _knownIds = ids;
+      final prev = _knownFingerprints;
+      _knownFingerprints = fingerprints;
 
       // 1er passage : mémoriser sans alerter.
-      if (!_baselineReady || prevIds == null) {
+      if (!_baselineReady || prev == null) {
         _baselineReady = true;
-        _alertedIds.addAll(ids);
+        _alertedFingerprints.addAll(fingerprints);
         return;
       }
 
-      final newcomers = ids.difference(prevIds);
-      // Uniquement les vrais nouveaux ids, jamais déjà alertés.
-      final toAlert = newcomers.difference(_alertedIds);
+      final newcomers = fingerprints.difference(prev);
+      final toAlert = newcomers.difference(_alertedFingerprints);
       if (toAlert.isEmpty) return;
 
       final newest = inbox.items.firstWhere(
-        (e) => toAlert.contains(e.id),
+        (e) => toAlert.contains(_alertFingerprint(e)),
         orElse: () => inbox.items.first,
       );
-      _alertedIds.addAll(toAlert);
+      _alertedFingerprints.addAll(toAlert);
 
       final title =
           newest.title.isNotEmpty ? newest.title : AppConstants.appName;
@@ -103,7 +110,7 @@ class LiveRefreshController extends StateNotifier<int>
       await _ref.read(pushNotificationServiceProvider).showLocalAlert(
             title: title,
             body: body,
-            dedupeKey: newest.id,
+            dedupeKey: _alertFingerprint(newest),
             showInAppBanner: false,
           );
     } catch (_) {

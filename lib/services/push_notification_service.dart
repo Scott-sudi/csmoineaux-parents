@@ -20,7 +20,7 @@ import '../providers/home_providers.dart';
 import '../providers/notifications_providers.dart';
 
 /// Canal Android — doit matcher MainActivity.kt / KalungaParentsApplication.
-const kParentsAlertChannelId = 'kalunga_parents_alerts_v8';
+const kParentsAlertChannelId = 'moineaux_parents_alerts_v2';
 const kParentsAlertChannelName = 'Alertes C.S. Les Moineaux';
 const _kNativeAlertsChannel = 'net.institutkalunga.parents/alerts';
 
@@ -296,7 +296,7 @@ class PushNotificationService {
         await _postSystemNotification(
           title: title,
           body: body,
-          icon: '@mipmap/ic_launcher',
+          icon: '@drawable/ic_stat_notify',
         );
         return true;
       } catch (_) {

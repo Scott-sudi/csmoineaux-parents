@@ -33,16 +33,16 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
-        <!-- Affichage système app fermée : canal + icône IK + couleur école. -->
+        <!-- Affichage système app fermée : canal + icône MN + couleur école. -->
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_channel_id"
-            android:value="kalunga_parents_alerts_v8" />
+            android:value="moineaux_parents_alerts_v2" />
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_icon"
             android:resource="@drawable/ic_stat_notify" />
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_color"
-            android:resource="@color/kalunga_notify" />
+            android:resource="@color/moineaux_notify" />
     </application>
     <queries>
         <intent>

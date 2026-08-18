@@ -39,7 +39,7 @@ class MainActivity : FlutterActivity() {
                         )
                     }
                     "showAlert" -> {
-                        val title = call.argument<String>("title") ?: "Institut Kalunga"
+                        val title = call.argument<String>("title") ?: "C.S. Les Moineaux"
                         val body = call.argument<String>("body") ?: ""
                         result.success(NotificationBranding.show(this, title, body))
                     }
