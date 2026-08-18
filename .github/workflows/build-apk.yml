@@ -41,7 +41,12 @@ jobs:
               top = (h - side) // 2
               return im.crop((left, top, left + side, top + side))
 
+          # On met un fond blanc derrière le logo pour qu'il reste visible
+          # même dans les notifications au fond sombre (icônes "large").
           im = crop_square(Image.open(logo).convert("RGBA"))
+          bg = Image.new("RGBA", im.size, (255, 255, 255, 255))
+          bg.paste(im, (0, 0), im)
+          im = bg
 
           res = Path("android/app/src/main/res")
           drawable = res / "drawable"
